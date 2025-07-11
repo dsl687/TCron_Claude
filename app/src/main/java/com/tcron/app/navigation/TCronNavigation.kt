@@ -1,15 +1,23 @@
 package com.tcron.app.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.tcron.core.common.ThemeManager
+import com.tcron.core.common.SystemInfoManager
 import com.tcron.feature.home.HomeScreen
+import com.tcron.feature.settings.SettingsScreen
+import com.tcron.feature.settings.LogsScreen
+import com.tcron.feature.settings.PluginsScreen
+import com.tcron.feature.settings.HelpScreen
 import com.tcron.feature.terminal.TerminalScreen
 
 @Composable
 fun TCronNavigation(
-    navController: NavHostController
+    navController: NavHostController,
+    onOpenDrawer: () -> Unit = {}
 ) {
     NavHost(
         navController = navController,
@@ -25,7 +33,8 @@ fun TCronNavigation(
                 },
                 onNavigateToTaskDetail = { taskId ->
                     navController.navigate("task_detail/$taskId")
-                }
+                },
+                onOpenDrawer = onOpenDrawer
             )
         }
         
@@ -46,16 +55,36 @@ fun TCronNavigation(
             // TODO: Implement TaskDetailScreen
         }
         
-        composable("dashboard") {
-            // TODO: Implement DashboardScreen
+        composable("logs") {
+            LogsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("plugins") {
+            PluginsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable("help") {
+            HelpScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
         
         composable("settings") {
-            // TODO: Implement SettingsScreen
-        }
-        
-        composable("notifications") {
-            // TODO: Implement NotificationsScreen
+            SettingsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

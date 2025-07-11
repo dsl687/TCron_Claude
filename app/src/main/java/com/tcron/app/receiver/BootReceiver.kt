@@ -4,9 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.tcron.core.common.Logger
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
     
     companion object {

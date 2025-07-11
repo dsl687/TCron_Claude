@@ -2,6 +2,8 @@ package com.tcron.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tcron.core.common.SystemInfoManager
+import com.tcron.core.common.SystemMetrics
 import com.tcron.core.domain.model.Task
 import com.tcron.core.domain.repository.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val systemInfoManager: SystemInfoManager
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -24,6 +27,7 @@ class HomeViewModel @Inject constructor(
     
     init {
         loadTasks()
+        loadSystemMetrics()
     }
     
     private fun loadTasks() {
@@ -57,10 +61,26 @@ class HomeViewModel @Inject constructor(
             taskRepository.toggleTaskEnabled(taskId, enabled)
         }
     }
+    
+    private fun loadSystemMetrics() {
+        viewModelScope.launch {
+            try {
+                val metrics = systemInfoManager.getCurrentMetrics()
+                _uiState.value = _uiState.value.copy(systemMetrics = metrics)
+            } catch (e: Exception) {
+                // Handle error silently, metrics will show default values
+            }
+        }
+    }
+    
+    fun refreshSystemMetrics() {
+        loadSystemMetrics()
+    }
 }
 
 data class HomeUiState(
     val isLoading: Boolean = false,
     val tasks: List<Task> = emptyList(),
+    val systemMetrics: SystemMetrics? = null,
     val error: String? = null
 )
