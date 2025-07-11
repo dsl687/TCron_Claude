@@ -1,0 +1,13 @@
+# Project exclude paths
+/.gradle/
+/app/build/
+/build/
+/core/common/build/
+/core/data/build/
+/core/domain/build/
+/feature/dashboard/build/
+/feature/home/build/
+/feature/notification/build/
+/feature/settings/build/
+/feature/task/build/
+/feature/terminal/build/
