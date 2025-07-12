@@ -9,6 +9,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -185,6 +187,79 @@ class NotificationHelper @Inject constructor(
             ) == PackageManager.PERMISSION_GRANTED
         } else {
             NotificationManagerCompat.from(context).areNotificationsEnabled()
+        }
+    }
+    
+    /**
+     * Request notification permission using Android standard dialog
+     */
+    fun requestNotificationPermission(
+        activity: ComponentActivity,
+        onGranted: () -> Unit,
+        onDenied: () -> Unit
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val requestPermissionLauncher = activity.registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { isGranted ->
+                if (isGranted) {
+                    Log.d(TAG, "Notification permission granted")
+                    onGranted()
+                } else {
+                    Log.d(TAG, "Notification permission denied")
+                    onDenied()
+                }
+            }
+            
+            when {
+                hasNotificationPermission() -> {
+                    Log.d(TAG, "Notification permission already granted")
+                    onGranted()
+                }
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) -> {
+                    Log.d(TAG, "Showing permission rationale")
+                    // Show rationale and then request permission
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+                else -> {
+                    Log.d(TAG, "Requesting notification permission")
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        } else {
+            // For older Android versions, check if notifications are enabled
+            if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+                Log.d(TAG, "Notifications are enabled on older Android version")
+                onGranted()
+            } else {
+                Log.d(TAG, "Notifications are disabled on older Android version")
+                onDenied()
+            }
+        }
+    }
+    
+    /**
+     * Check if we need to request notification permission
+     */
+    fun needsNotificationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            !hasNotificationPermission()
+        } else {
+            !NotificationManagerCompat.from(context).areNotificationsEnabled()
+        }
+    }
+    
+    /**
+     * Get notification permission status as text
+     */
+    fun getNotificationPermissionStatus(): String {
+        return when {
+            hasNotificationPermission() -> "Concedida"
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> "Negada"
+            else -> "Desabilitada"
         }
     }
 }

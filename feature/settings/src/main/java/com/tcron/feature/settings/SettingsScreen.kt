@@ -821,17 +821,54 @@ private fun SettingItem(
     }
 }
 
-// Função para reiniciar o app
+// Função para reiniciar o app de forma robusta
 private fun restartApp(context: android.content.Context) {
-    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-    intent?.let {
-        it.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        it.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(it)
-        if (context is android.app.Activity) {
-            context.finish()
+    try {
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+            addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
-        kotlin.system.exitProcess(0)
+        
+        if (intent != null) {
+            // Use PendingIntent for better compatibility
+            val pendingIntent = android.app.PendingIntent.getActivity(
+                context, 
+                0, 
+                intent, 
+                android.app.PendingIntent.FLAG_ONE_SHOT or android.app.PendingIntent.FLAG_IMMUTABLE
+            )
+            
+            // Use AlarmManager to restart the app after a short delay
+            val alarmManager = context.getSystemService(android.content.Context.ALARM_SERVICE) as android.app.AlarmManager
+            alarmManager.setExact(
+                android.app.AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + 1000, // 1 second delay
+                pendingIntent
+            )
+            
+            // Finish current activity and exit
+            if (context is android.app.Activity) {
+                context.finishAffinity()
+            }
+            kotlin.system.exitProcess(0)
+        } else {
+            // Fallback: Just exit and let the user manually restart
+            if (context is android.app.Activity) {
+                context.finishAffinity()
+            }
+            kotlin.system.exitProcess(0)
+        }
+    } catch (e: Exception) {
+        // If restart fails, just show a message and exit
+        if (context is android.app.Activity) {
+            android.widget.Toast.makeText(
+                context, 
+                "Por favor, reinicie o aplicativo manualmente para aplicar as mudanças", 
+                android.widget.Toast.LENGTH_LONG
+            ).show()
+            context.finishAffinity()
+        }
     }
 }
 

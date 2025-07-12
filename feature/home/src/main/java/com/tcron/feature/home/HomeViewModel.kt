@@ -95,6 +95,42 @@ class HomeViewModel @Inject constructor(
             action()
         }
     }
+    
+    // Menu action methods
+    fun showExportDialog() {
+        _uiState.value = _uiState.value.copy(showExportDialog = true)
+    }
+    
+    fun showClearHistoryDialog() {
+        _uiState.value = _uiState.value.copy(showClearHistoryDialog = true)
+    }
+    
+    fun showFilterDialog() {
+        _uiState.value = _uiState.value.copy(showFilterDialog = true)
+    }
+    
+    fun showSortDialog() {
+        _uiState.value = _uiState.value.copy(showSortDialog = true)
+    }
+    
+    fun toggleTestMode() {
+        val currentState = _uiState.value
+        _uiState.value = currentState.copy(testModeEnabled = !currentState.testModeEnabled)
+    }
+    
+    fun showTermsDialog() {
+        _uiState.value = _uiState.value.copy(showTermsDialog = true)
+    }
+    
+    fun dismissDialogs() {
+        _uiState.value = _uiState.value.copy(
+            showExportDialog = false,
+            showClearHistoryDialog = false,
+            showFilterDialog = false,
+            showSortDialog = false,
+            showTermsDialog = false
+        )
+    }
 }
 
 data class HomeUiState(
@@ -102,5 +138,11 @@ data class HomeUiState(
     val tasks: List<Task> = emptyList(),
     val notifications: List<AppNotification> = emptyList(),
     val systemMetrics: SystemMetrics? = null,
-    val error: String? = null
+    val error: String? = null,
+    val showExportDialog: Boolean = false,
+    val showClearHistoryDialog: Boolean = false,
+    val showFilterDialog: Boolean = false,
+    val showSortDialog: Boolean = false,
+    val showTermsDialog: Boolean = false,
+    val testModeEnabled: Boolean = false
 )

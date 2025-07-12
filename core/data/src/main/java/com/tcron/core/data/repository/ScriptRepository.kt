@@ -36,18 +36,23 @@ class ScriptRepository @Inject constructor(
     val scripts: StateFlow<List<Script>> = _scripts.asStateFlow()
     
     fun saveScript(script: Script) {
-        val currentScripts = getScripts().toMutableList()
-        val existingIndex = currentScripts.indexOfFirst { it.id == script.id }
-        
-        if (existingIndex >= 0) {
-            currentScripts[existingIndex] = script
-        } else {
-            currentScripts.add(script)
+        try {
+            val currentScripts = getScripts().toMutableList()
+            val existingIndex = currentScripts.indexOfFirst { it.id == script.id }
+            
+            if (existingIndex >= 0) {
+                currentScripts[existingIndex] = script
+            } else {
+                currentScripts.add(script)
+            }
+            
+            val json = gson.toJson(currentScripts)
+            prefs.edit().putString("scripts", json).commit() // Use commit() for immediate persistence
+            _scripts.value = currentScripts
+        } catch (e: Exception) {
+            android.util.Log.e("ScriptRepository", "Error saving script: ${e.message}", e)
+            throw e // Re-throw to let the UI handle the error
         }
-        
-        val json = gson.toJson(currentScripts)
-        prefs.edit().putString("scripts", json).apply()
-        _scripts.value = currentScripts
     }
     
     fun deleteScript(scriptId: String) {

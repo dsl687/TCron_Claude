@@ -30,9 +30,10 @@ fun TCronNavigation(
     ) {
         composable("home") {
             HomeScreen(
-                onNavigateToTerminal = {
-                    navController.navigate("terminal")
-                },
+                // TERMINAL ISOLATED - DO NOT USE
+                // onNavigateToTerminal = {
+                //     navController.navigate("terminal")
+                // },
                 onNavigateToCreateTask = {
                     navController.navigate("create_task")
                 },
@@ -55,13 +56,14 @@ fun TCronNavigation(
             )
         }
         
-        composable("terminal") {
-            TerminalScreen(
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
+        // TERMINAL ISOLATED TEMPORARILY - DO NOT USE
+        // composable("terminal") {
+        //     TerminalScreen(
+        //         onNavigateBack = {
+        //             navController.popBackStack()
+        //         }
+        //     )
+        // }
         
         composable("create_task") {
             CreateTaskScreen(

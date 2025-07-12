@@ -1,14 +1,12 @@
 package com.tcron.app
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.fragment.app.FragmentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -25,11 +23,16 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.tcron.app.navigation.TCronNavigation
 import com.tcron.app.ui.theme.TCronTheme
 import com.tcron.core.common.ThemeManager
+import com.tcron.core.common.BiometricHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
+    
+    @Inject
+    lateinit var biometricHelper: BiometricHelper
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,36 +42,97 @@ class MainActivity : ComponentActivity() {
             val currentTheme by themeManager.currentTheme.collectAsState()
             
             TCronTheme(themeMode = currentTheme) {
-                val navController = rememberNavController()
-                val drawerState = rememberDrawerState(DrawerValue.Closed)
-                val scope = rememberCoroutineScope()
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-                
-                // Only show drawer on home screen
-                val showDrawer = currentRoute == "home"
-                
-                if (showDrawer) {
-                    ModalNavigationDrawer(
-                        drawerState = drawerState,
-                        drawerContent = {
-                            TCronDrawerContent(
-                                onNavigate = { route ->
-                                    scope.launch { drawerState.close() }
-                                    navController.navigate(route)
-                                },
-                                onCloseDrawer = {
-                                    scope.launch { drawerState.close() }
-                                }
-                            )
-                        }
-                    ) {
-                        AppContent(navController, drawerState, scope)
-                    }
-                } else {
-                    AppContent(navController, drawerState, scope)
-                }
+                MainScreen()
             }
+        }
+    }
+    
+    @Composable
+    private fun MainScreen() {
+        var isAuthenticated by remember { mutableStateOf(false) }
+        var biometricRequired by remember { mutableStateOf(true) }
+        var showBiometricError by remember { mutableStateOf(false) }
+        var biometricErrorMessage by remember { mutableStateOf("") }
+        
+        LaunchedEffect(Unit) {
+            // Check if biometric is available and required
+            biometricRequired = biometricHelper.isBiometricAvailable(this@MainActivity)
+            if (!biometricRequired) {
+                isAuthenticated = true
+            }
+        }
+        
+        when {
+            !biometricRequired || isAuthenticated -> {
+                // Show main app content
+                AppWithNavigation()
+            }
+            else -> {
+                // Show biometric authentication screen
+                BiometricAuthScreen(
+                    onAuthenticate = {
+                        biometricHelper.authenticate(
+                            activity = this@MainActivity,
+                            title = "Acesso ao TCron",
+                            subtitle = "Use sua biometria para acessar o aplicativo",
+                            negativeButtonText = "Cancelar",
+                            onSuccess = {
+                                isAuthenticated = true
+                                showBiometricError = false
+                            },
+                            onError = { message ->
+                                biometricErrorMessage = message
+                                showBiometricError = true
+                            },
+                            onFailed = {
+                                biometricErrorMessage = "Biometria não reconhecida. Tente novamente."
+                                showBiometricError = true
+                            }
+                        )
+                    },
+                    onSkip = {
+                        isAuthenticated = true
+                    },
+                    showError = showBiometricError,
+                    errorMessage = biometricErrorMessage,
+                    onDismissError = {
+                        showBiometricError = false
+                    }
+                )
+            }
+        }
+    }
+    
+    @Composable
+    private fun AppWithNavigation() {
+        val navController = rememberNavController()
+        val drawerState = rememberDrawerState(DrawerValue.Closed)
+        val scope = rememberCoroutineScope()
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+        
+        // Only show drawer on home screen
+        val showDrawer = currentRoute == "home"
+        
+        if (showDrawer) {
+            ModalNavigationDrawer(
+                drawerState = drawerState,
+                drawerContent = {
+                    TCronDrawerContent(
+                        onNavigate = { route ->
+                            scope.launch { drawerState.close() }
+                            navController.navigate(route)
+                        },
+                        onCloseDrawer = {
+                            scope.launch { drawerState.close() }
+                        }
+                    )
+                }
+            ) {
+                AppContent(navController, drawerState, scope)
+            }
+        } else {
+            AppContent(navController, drawerState, scope)
         }
     }
 }
@@ -178,5 +242,99 @@ private fun TCronDrawerContent(
             onClick = { onNavigate("help") },
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
         )
+    }
+}
+
+@Composable
+private fun BiometricAuthScreen(
+    onAuthenticate: () -> Unit,
+    onSkip: () -> Unit,
+    showError: Boolean,
+    errorMessage: String,
+    onDismissError: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                Icon(
+                    Icons.Default.Fingerprint,
+                    contentDescription = "Autenticação Biométrica",
+                    modifier = Modifier.size(80.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                
+                Text(
+                    text = "TCron",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                
+                Text(
+                    text = "Acesso Seguro",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                Text(
+                    text = "Use sua biometria para acessar o aplicativo de forma segura",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                Button(
+                    onClick = onAuthenticate,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(
+                        Icons.Default.Fingerprint,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Autenticar")
+                }
+                
+                TextButton(
+                    onClick = onSkip,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Pular Autenticação")
+                }
+            }
+        }
+        
+        if (showError) {
+            AlertDialog(
+                onDismissRequest = onDismissError,
+                title = {
+                    Text("Erro de Autenticação")
+                },
+                text = {
+                    Text(errorMessage)
+                },
+                confirmButton = {
+                    TextButton(onClick = onDismissError) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
     }
 }

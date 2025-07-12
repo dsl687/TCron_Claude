@@ -48,17 +48,24 @@ fun CreatePythonScriptScreen(
                 actions = {
                     TextButton(
                         onClick = {
-                            // Save the script
-                            val script = Script(
-                                id = UUID.randomUUID().toString(),
-                                name = scriptName,
-                                description = scriptDescription,
-                                content = scriptContent,
-                                type = ScriptType.PYTHON,
-                                requiresRoot = false
-                            )
-                            scriptRepository.saveScript(script)
-                            onScriptSaved()
+                            try {
+                                // Save the script with error handling
+                                val script = Script(
+                                    id = UUID.randomUUID().toString(),
+                                    name = scriptName,
+                                    description = scriptDescription,
+                                    content = scriptContent,
+                                    type = ScriptType.PYTHON,
+                                    requiresRoot = false
+                                )
+                                scriptRepository.saveScript(script)
+                                onScriptSaved()
+                            } catch (e: Exception) {
+                                android.util.Log.e("CreatePythonScript", "Error saving script: ${e.message}", e)
+                                // Show error to user
+                                executionOutput = "❌ Erro ao salvar script: ${e.message}"
+                                showOutput = true
+                            }
                         },
                         enabled = scriptName.isNotBlank() && scriptContent.isNotBlank()
                     ) {
@@ -76,6 +83,39 @@ fun CreatePythonScriptScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Python Examples Card - Moved to top as requested
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "💡 Exemplos de Uso",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    
+                    Text(
+                        text = """
+                        • Monitoramento de sistema
+                        • Backup de arquivos
+                        • Análise de logs
+                        • Verificação de saúde de serviços
+                        • Automação de tarefas administrativas
+                        """.trimIndent(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            
             // Script Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -183,40 +223,6 @@ fun CreatePythonScriptScreen(
                     )
                 }
             }
-            
-            // Python Examples Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "💡 Exemplos de Uso",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    
-                    Text(
-                        text = """
-                        • Monitoramento de sistema
-                        • Backup de arquivos
-                        • Análise de logs
-                        • Verificação de saúde de serviços
-                        • Automação de tarefas administrativas
-                        """.trimIndent(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-            
             // Output Card - only shown when there's output
             if (showOutput) {
                 Card(

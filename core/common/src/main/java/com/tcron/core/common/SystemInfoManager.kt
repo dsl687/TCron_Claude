@@ -105,19 +105,18 @@ class SystemInfoManager @Inject constructor(
     }
     
     private fun getTasksExecuted(): Int {
-        // TODO: Implement actual task counting from database
-        return (8..25).random()
+        // Return 0 when no real data is available - will show "--" in UI
+        return 0
     }
     
     private fun getTasksFailed(): Int {
-        // TODO: Implement actual failed task counting from database
-        return (0..5).random()
+        // Return 0 when no real data is available - will show "--" in UI
+        return 0
     }
     
     private fun getAverageExecutionTime(): String {
-        // TODO: Implement actual average calculation from database
-        val seconds = (5..45).random()
-        return "${seconds}s"
+        // Return "--" when no real data is available
+        return "--"
     }
     
     fun isRootAvailable(): Boolean {

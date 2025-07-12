@@ -35,7 +35,7 @@ fun CreateShellScriptScreen(
     var isExecuting by remember { mutableStateOf(false) }
     var executionOutput by remember { mutableStateOf("") }
     var showOutput by remember { mutableStateOf(false) }
-    var requiresRoot by remember { mutableStateOf(false) }
+    val requiresRoot = true // Always use root as per requirements
     
     Scaffold(
         topBar = {
@@ -49,17 +49,24 @@ fun CreateShellScriptScreen(
                 actions = {
                     TextButton(
                         onClick = {
-                            // Save the script
-                            val script = Script(
-                                id = UUID.randomUUID().toString(),
-                                name = scriptName,
-                                description = scriptDescription,
-                                content = scriptContent,
-                                type = ScriptType.SHELL,
-                                requiresRoot = requiresRoot
-                            )
-                            scriptRepository.saveScript(script)
-                            onScriptSaved()
+                            try {
+                                // Save the script with error handling
+                                val script = Script(
+                                    id = UUID.randomUUID().toString(),
+                                    name = scriptName,
+                                    description = scriptDescription,
+                                    content = scriptContent,
+                                    type = ScriptType.SHELL,
+                                    requiresRoot = requiresRoot
+                                )
+                                scriptRepository.saveScript(script)
+                                onScriptSaved()
+                            } catch (e: Exception) {
+                                android.util.Log.e("CreateShellScript", "Error saving script: ${e.message}", e)
+                                // Show error to user
+                                executionOutput = "❌ Erro ao salvar script: ${e.message}"
+                                showOutput = true
+                            }
                         },
                         enabled = scriptName.isNotBlank() && scriptContent.isNotBlank()
                     ) {
@@ -77,6 +84,40 @@ fun CreateShellScriptScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Shell Examples Card - Moved to top as requested
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "💡 Exemplos de Uso",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    
+                    Text(
+                        text = """
+                        • Limpeza de arquivos temporários
+                        • Backup e sincronização
+                        • Monitoramento de serviços
+                        • Teste de rotação de tela
+                        • Automação de tarefas do sistema
+                        • Comandos de rede e conectividade
+                        """.trimIndent(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+            
             // Script Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -111,7 +152,8 @@ fun CreateShellScriptScreen(
                         maxLines = 3
                     )
                     
-                    // Root permission toggle
+                    // Root permission always enabled - removed user toggle
+                    // All scripts now execute with root by default as specified in requirements
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -119,24 +161,25 @@ fun CreateShellScriptScreen(
                         Icon(
                             Icons.Default.Security,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Requer permissões root",
+                                text = "Execução com Root",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
-                                text = "Execute com privilégios elevados",
+                                text = "Todos os scripts executam com privilégios root por padrão",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Switch(
-                            checked = requiresRoot,
-                            onCheckedChange = { requiresRoot = it }
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = "Root ativado",
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -270,41 +313,6 @@ fun CreateShellScriptScreen(
                     )
                 }
             }
-            
-            // Shell Examples Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = "💡 Exemplos de Uso",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    
-                    Text(
-                        text = """
-                        • Limpeza de arquivos temporários
-                        • Backup e sincronização
-                        • Monitoramento de serviços
-                        • Teste de rotação de tela
-                        • Automação de tarefas do sistema
-                        • Comandos de rede e conectividade
-                        """.trimIndent(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-            
             // Quick Commands Card
             Card(
                 modifier = Modifier.fillMaxWidth(),

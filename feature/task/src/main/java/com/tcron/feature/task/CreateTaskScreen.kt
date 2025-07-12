@@ -64,26 +64,31 @@ fun CreateTaskScreen(
                 actions = {
                     TextButton(
                         onClick = {
-                            // Convert schedule to cron expression
-                            val cronExpression = when (selectedScheduleType) {
-                                ScheduleType.HOURLY -> "$selectedMinute * * * *"
-                                ScheduleType.DAILY -> "$selectedMinute $selectedHour * * *"
-                                ScheduleType.WEEKLY -> "$selectedMinute $selectedHour * * 1"
-                                ScheduleType.MONTHLY -> "$selectedMinute $selectedHour 1 * *"
-                                ScheduleType.CUSTOM -> customCron
+                            try {
+                                // Convert schedule to cron expression
+                                val cronExpression = when (selectedScheduleType) {
+                                    ScheduleType.HOURLY -> "$selectedMinute * * * *"
+                                    ScheduleType.DAILY -> "$selectedMinute $selectedHour * * *"
+                                    ScheduleType.WEEKLY -> "$selectedMinute $selectedHour * * 1"
+                                    ScheduleType.MONTHLY -> "$selectedMinute $selectedHour 1 * *"
+                                    ScheduleType.CUSTOM -> customCron
+                                }
+                                
+                                // Save the schedule with error handling
+                                val schedule = Schedule(
+                                    id = UUID.randomUUID().toString(),
+                                    name = taskName,
+                                    description = taskDescription,
+                                    command = taskCommand,
+                                    cronExpression = cronExpression,
+                                    isEnabled = isEnabled
+                                )
+                                scheduleRepository.saveSchedule(schedule)
+                                onTaskCreated()
+                            } catch (e: Exception) {
+                                android.util.Log.e("CreateTask", "Error saving task: ${e.message}", e)
+                                // TODO: Show error dialog or toast to user
                             }
-                            
-                            // Save the schedule
-                            val schedule = Schedule(
-                                id = UUID.randomUUID().toString(),
-                                name = taskName,
-                                description = taskDescription,
-                                command = taskCommand,
-                                cronExpression = cronExpression,
-                                isEnabled = isEnabled
-                            )
-                            scheduleRepository.saveSchedule(schedule)
-                            onTaskCreated()
                         },
                         enabled = taskName.isNotEmpty() && taskCommand.isNotEmpty() && 
                                  (selectedScheduleType != ScheduleType.CUSTOM || customCron.isNotEmpty())

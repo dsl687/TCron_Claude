@@ -2,29 +2,36 @@
 
 TCron é um aplicativo Android moderno para agendamento e automação de tarefas, scripts Python e Shell. Desenvolvido com Jetpack Compose e arquitetura limpa, oferece uma interface intuitiva e funcionalidades avançadas para administradores de sistema e usuários avançados.
 
+## 🆕 Versão 1.1.0 - Refatoração Completa
+
+Esta versão inclui uma refatoração técnica completa focada em robustez, segurança e experiência do usuário. Veja o [changelog completo](./changelog/v1.1.0.md) para todos os detalhes.
+
 ## 🚀 Funcionalidades
 
 ### ✅ Funcionalidades Implementadas e Corrigidas
 
 #### 🏠 Tela Principal (Home)
 - ✅ **Notificações em Tempo Real**: Sistema de notificações tipo YouTube com contadores dinâmicos
-- ✅ **Cards Informativos**: Exibição de métricas do sistema e tarefas agendadas
+- ✅ **Cards Informativos**: Exibição de métricas do sistema sem dados fictícios (exibe "--" quando apropriado)
 - ✅ **FAB Menu Funcional**: Menu de ações flutuante totalmente operacional
+- ✅ **Menu Superior**: Todos os botões funcionais com ações implementadas
+- ✅ **Tooltips**: Dicas contextuais em ícones principais
 - ✅ **Navegação Otimizada**: Drawer menu restrito apenas à tela inicial
 
 #### 📝 Criação e Gerenciamento de Scripts
 - ✅ **Editor Python**: Interface completa para criação de scripts Python com:
-  - Templates otimizados para Android (`#!/system/bin/env python3`)
-  - Verificação de ambiente Android automática
+  - Templates otimizados para Android
+  - Exemplos de uso reposicionados no topo
   - Sistema de logs com timestamp
   - Tratamento de exceções robusto
 - ✅ **Editor Shell**: Interface completa para criação de scripts Shell com:
   - Templates compatíveis com Android (`#!/system/bin/sh`)
-  - Verificação de permissões root
+  - Exemplos de uso reposicionados no topo
   - Comandos rápidos pré-configurados
-  - Teste de rotação de tela integrado
-- ✅ **Persistência Local**: Scripts salvos com SharedPreferences e Gson
-- ✅ **Teste de Execução**: Validação real de scripts com verificação de root
+  - **Execução com root por padrão** (opção removida conforme especificado)
+- ✅ **BusyBox Integration**: Execução via BusyBox standalone mode
+- ✅ **Persistência Robusta**: Scripts salvos com tratamento de erro melhorado
+- ✅ **Crash Protection**: Correção de falhas ao salvar scripts/tarefas
 
 #### ⏰ Agendamento de Tarefas
 - ✅ **Criação de Agendamentos**: Interface intuitiva para programar tarefas
@@ -34,18 +41,20 @@ TCron é um aplicativo Android moderno para agendamento e automação de tarefas
 
 #### 🎨 Interface e Temas
 - ✅ **Material Design 3**: Interface moderna seguindo diretrizes atuais
-- ✅ **Temas Dinâmicos**: Aplicação instantânea sem reinicialização
+- ✅ **Temas Dinâmicos**: Aplicação com aviso de reinício e callback automático funcional
 - ✅ **Material You**: Suporte a cores dinâmicas do Android 12+
 - ✅ **Modo Escuro/Claro**: Alternância fluida entre temas
+- ✅ **Restart Robusto**: Sistema melhorado usando AlarmManager com fallback
 
 #### 🔐 Segurança e Configurações
-- ✅ **Autenticação Biométrica**: Integração com BiometricPrompt
+- ✅ **Autenticação Biométrica**: **Redirecionada para proteção de entrada no app**
   - Verificação de disponibilidade de hardware
-  - Ativação com confirmação biométrica
+  - Proteção opcional de acesso ao aplicativo
   - Status detalhado de compatibilidade
+  - **Removida** da execução de comandos root (agora padrão)
 - ✅ **Configurações Persistentes**: Todas as preferências mantidas entre sessões
 - ✅ **Verificação Root**: Detecção automática de acesso root
-- ✅ **Notificações Configuráveis**: Canais separados por tipo de evento
+- ✅ **Notificações Android**: Diálogo de permissão padrão do Android
 
 #### 🔔 Sistema de Notificações
 - ✅ **Teste Funcional**: Botão de teste dispara notificações reais
@@ -173,4 +182,4 @@ Este projeto é distribuído sob a licença MIT. Veja o arquivo LICENSE para mai
 
 ---
 
-**TCron v1.0.0** - Desenvolvido com ❤️ para a comunidade Android
+**TCron v1.1.0** - Desenvolvido com ❤️ para a comunidade Android

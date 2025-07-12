@@ -30,7 +30,7 @@ import com.tcron.core.domain.model.Task
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateToTerminal: () -> Unit = {},
+    // TERMINAL ISOLATED - onNavigateToTerminal: () -> Unit = {},
     onNavigateToCreateTask: () -> Unit = {},
     onNavigateToTaskDetail: (String) -> Unit = {},
     onNavigateToScriptPicker: () -> Unit = {},
@@ -53,7 +53,13 @@ fun HomeScreen(
                     viewModel.refreshTasks()
                     viewModel.refreshSystemMetrics()
                 },
-                onOpenNotifications = onNavigateToNotifications
+                onOpenNotifications = onNavigateToNotifications,
+                onShowExportDialog = { viewModel.showExportDialog() },
+                onShowClearHistoryDialog = { viewModel.showClearHistoryDialog() },
+                onShowFilterDialog = { viewModel.showFilterDialog() },
+                onShowSortDialog = { viewModel.showSortDialog() },
+                onToggleTestMode = { viewModel.toggleTestMode() },
+                onShowTermsDialog = { viewModel.showTermsDialog() }
             )
         },
         floatingActionButton = {
@@ -75,7 +81,8 @@ fun HomeScreen(
                 },
                 onOpenTerminal = {
                     showFabMenu = false
-                    viewModel.navigateWithDelay { onNavigateToTerminal() }
+                    // TERMINAL ISOLATED - DO NOT USE
+                    // viewModel.navigateWithDelay { onNavigateToTerminal() }
                 }
             )
         }
@@ -123,7 +130,13 @@ private fun TCronTopBar(
     onOpenDrawer: () -> Unit,
     unreadCount: Int = 0,
     onRefreshData: () -> Unit = {},
-    onOpenNotifications: () -> Unit = {}
+    onOpenNotifications: () -> Unit = {},
+    onShowExportDialog: () -> Unit = {},
+    onShowClearHistoryDialog: () -> Unit = {},
+    onShowFilterDialog: () -> Unit = {},
+    onShowSortDialog: () -> Unit = {},
+    onToggleTestMode: () -> Unit = {},
+    onShowTermsDialog: () -> Unit = {}
 ) {
     TopAppBar(
         title = {
@@ -134,24 +147,22 @@ private fun TCronTopBar(
             )
         },
         navigationIcon = {
-            IconButton(onClick = onOpenDrawer) {
-                Icon(
-                    Icons.Default.Menu,
-                    contentDescription = "Menu",
-                    tint = MaterialTheme.colorScheme.onBackground
-                )
-            }
+            TooltipIconButton(
+                onClick = onOpenDrawer,
+                icon = Icons.Default.Menu,
+                contentDescription = "Menu",
+                tooltipText = "Abrir menu lateral"
+            )
         },
         actions = {
             // Notification button with badge
             Box(modifier = Modifier.padding(end = 8.dp)) {
-                IconButton(onClick = onOpenNotifications) {
-                    Icon(
-                        Icons.Default.Notifications,
-                        contentDescription = "Notificações",
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
+                TooltipIconButton(
+                    onClick = onOpenNotifications,
+                    icon = Icons.Default.Notifications,
+                    contentDescription = "Notificações",
+                    tooltipText = "Ver notificações"
+                )
                 
                 // Badge with count
                 if (unreadCount > 0) {
@@ -169,13 +180,12 @@ private fun TCronTopBar(
             var showMenu by remember { mutableStateOf(false) }
             
             Box {
-                IconButton(onClick = { showMenu = true }) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = "More options",
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
+                TooltipIconButton(
+                    onClick = { showMenu = true },
+                    icon = Icons.Default.MoreVert,
+                    contentDescription = "More options",
+                    tooltipText = "Menu de ações"
+                )
                 
                 DropdownMenu(
                     expanded = showMenu,
@@ -195,7 +205,8 @@ private fun TCronTopBar(
                         text = { Text("Exportar agendamentos") },
                         onClick = { 
                             showMenu = false
-                            // TODO: Export functionality
+                            // Show export options dialog
+                            onShowExportDialog()
                         },
                         leadingIcon = {
                             Icon(Icons.Default.GetApp, contentDescription = null)
@@ -205,7 +216,8 @@ private fun TCronTopBar(
                         text = { Text("Limpar histórico") },
                         onClick = { 
                             showMenu = false
-                            // TODO: Clear history
+                            // Show confirmation dialog for clearing history
+                            onShowClearHistoryDialog()
                         },
                         leadingIcon = {
                             Icon(Icons.Default.CleaningServices, contentDescription = null)
@@ -215,7 +227,8 @@ private fun TCronTopBar(
                         text = { Text("Filtrar por tipo") },
                         onClick = { 
                             showMenu = false
-                            // TODO: Filter functionality
+                            // Show filter options dialog
+                            onShowFilterDialog()
                         },
                         leadingIcon = {
                             Icon(Icons.Default.FilterList, contentDescription = null)
@@ -225,7 +238,8 @@ private fun TCronTopBar(
                         text = { Text("Ordenar por...") },
                         onClick = { 
                             showMenu = false
-                            // TODO: Sort functionality
+                            // Show sort options dialog
+                            onShowSortDialog()
                         },
                         leadingIcon = {
                             Icon(Icons.Default.Sort, contentDescription = null)
@@ -235,7 +249,8 @@ private fun TCronTopBar(
                         text = { Text("Modo de teste") },
                         onClick = { 
                             showMenu = false
-                            // TODO: Test mode
+                            // Toggle test mode
+                            onToggleTestMode()
                         },
                         leadingIcon = {
                             Icon(Icons.Default.Science, contentDescription = null)
@@ -245,7 +260,8 @@ private fun TCronTopBar(
                         text = { Text("Ver termos de uso") },
                         onClick = { 
                             showMenu = false
-                            // TODO: Terms of use
+                            // Show terms of use dialog
+                            onShowTermsDialog()
                         },
                         leadingIcon = {
                             Icon(Icons.Default.Description, contentDescription = null)
@@ -309,21 +325,21 @@ private fun SystemSummaryCard(
             SystemMetricRow(
                 icon = Icons.Default.CheckCircle,
                 label = "Tarefas executadas",
-                value = systemMetrics?.tasksExecuted?.toString() ?: "0",
+                value = systemMetrics?.let { if (it.tasksExecuted == 0) "--" else it.tasksExecuted.toString() } ?: "--",
                 iconColor = Color(0xFF4CAF50)
             )
             
             SystemMetricRow(
                 icon = Icons.Default.Warning,
                 label = "Falhas",
-                value = systemMetrics?.tasksFailed?.toString() ?: "0",
+                value = systemMetrics?.let { if (it.tasksFailed == 0) "--" else it.tasksFailed.toString() } ?: "--",
                 iconColor = Color(0xFFE57373)
             )
             
             SystemMetricRow(
                 icon = Icons.Default.Timer,
                 label = "Tempo médio",
-                value = systemMetrics?.averageExecutionTime ?: "0s",
+                value = systemMetrics?.averageExecutionTime ?: "--",
                 iconColor = Color(0xFF64B5F6)
             )
             
@@ -885,6 +901,48 @@ private fun FABAction(
                 icon,
                 contentDescription = label,
                 modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TooltipIconButton(
+    onClick: () -> Unit,
+    icon: ImageVector,
+    contentDescription: String,
+    tooltipText: String,
+    modifier: Modifier = Modifier
+) {
+    var showTooltip by remember { mutableStateOf(false) }
+    
+    Box {
+        IconButton(
+            onClick = onClick,
+            modifier = modifier
+        ) {
+            Icon(
+                icon,
+                contentDescription = contentDescription,
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+        }
+        
+        // Simple tooltip using DropdownMenu when long pressed
+        DropdownMenu(
+            expanded = showTooltip,
+            onDismissRequest = { showTooltip = false },
+            modifier = Modifier.background(
+                MaterialTheme.colorScheme.inverseSurface,
+                RoundedCornerShape(4.dp)
+            )
+        ) {
+            Text(
+                text = tooltipText,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             )
         }
     }

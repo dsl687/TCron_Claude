@@ -34,18 +34,23 @@ class ScheduleRepository @Inject constructor(
     val schedules: StateFlow<List<Schedule>> = _schedules.asStateFlow()
     
     fun saveSchedule(schedule: Schedule) {
-        val currentSchedules = getSchedules().toMutableList()
-        val existingIndex = currentSchedules.indexOfFirst { it.id == schedule.id }
-        
-        if (existingIndex >= 0) {
-            currentSchedules[existingIndex] = schedule
-        } else {
-            currentSchedules.add(schedule)
+        try {
+            val currentSchedules = getSchedules().toMutableList()
+            val existingIndex = currentSchedules.indexOfFirst { it.id == schedule.id }
+            
+            if (existingIndex >= 0) {
+                currentSchedules[existingIndex] = schedule
+            } else {
+                currentSchedules.add(schedule)
+            }
+            
+            val json = gson.toJson(currentSchedules)
+            prefs.edit().putString("schedules", json).commit() // Use commit() for immediate persistence
+            _schedules.value = currentSchedules
+        } catch (e: Exception) {
+            android.util.Log.e("ScheduleRepository", "Error saving schedule: ${e.message}", e)
+            throw e // Re-throw to let the UI handle the error
         }
-        
-        val json = gson.toJson(currentSchedules)
-        prefs.edit().putString("schedules", json).apply()
-        _schedules.value = currentSchedules
     }
     
     fun deleteSchedule(scheduleId: String) {
