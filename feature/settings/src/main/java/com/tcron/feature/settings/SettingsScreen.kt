@@ -13,19 +13,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tcron.core.common.ThemeManager
 import com.tcron.core.common.ThemeMode
+import com.tcron.core.common.NotificationHelper
+import com.tcron.core.common.BiometricHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.IOException
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val themeManager: ThemeManager = hiltViewModel()
+    val context = LocalContext.current
+    val notificationHelper = remember { NotificationHelper(context) }
+    val biometricHelper = remember { BiometricHelper() }
+    val currentTheme by themeManager.currentTheme.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    
+    var showLicensesDialog by remember { mutableStateOf(false) }
+    var showPrivacyDialog by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -46,23 +63,28 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                ThemeSettingsCard()
+                ThemeSettingsCard(themeManager, currentTheme)
             }
             
             item {
-                AppSettingsCard()
+                AppSettingsCard(uiState, viewModel, notificationHelper)
             }
             
             item {
-                SystemSettingsCard()
+                SystemSettingsCard(uiState, viewModel)
             }
             
             item {
-                SecuritySettingsCard()
+                SecuritySettingsCard(uiState, viewModel, biometricHelper, context)
             }
             
             item {
-                AboutCard()
+                AboutCard(
+                    showLicensesDialog = showLicensesDialog,
+                    onShowLicensesDialog = { showLicensesDialog = it },
+                    showPrivacyDialog = showPrivacyDialog,
+                    onShowPrivacyDialog = { showPrivacyDialog = it }
+                )
             }
         }
     }
@@ -70,7 +92,7 @@ fun SettingsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ThemeSettingsCard() {
+private fun ThemeSettingsCard(themeManager: ThemeManager, currentTheme: ThemeMode) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
@@ -96,7 +118,6 @@ private fun ThemeSettingsCard() {
             }
             
             var expanded by remember { mutableStateOf(false) }
-            val currentTheme = ThemeMode.DARK // TODO: Get from actual theme manager
             
             ExposedDropdownMenuBox(
                 expanded = expanded,
@@ -126,7 +147,7 @@ private fun ThemeSettingsCard() {
                     DropdownMenuItem(
                         text = { Text("Claro") },
                         onClick = {
-                            // TODO: Set theme to light
+                            themeManager.setThemeMode(ThemeMode.LIGHT)
                             expanded = false
                         },
                         leadingIcon = {
@@ -136,7 +157,7 @@ private fun ThemeSettingsCard() {
                     DropdownMenuItem(
                         text = { Text("Escuro") },
                         onClick = {
-                            // TODO: Set theme to dark
+                            themeManager.setThemeMode(ThemeMode.DARK)
                             expanded = false
                         },
                         leadingIcon = {
@@ -146,7 +167,7 @@ private fun ThemeSettingsCard() {
                     DropdownMenuItem(
                         text = { Text("Padrão do sistema") },
                         onClick = {
-                            // TODO: Set theme to system
+                            themeManager.setThemeMode(ThemeMode.SYSTEM)
                             expanded = false
                         },
                         leadingIcon = {
@@ -160,7 +181,11 @@ private fun ThemeSettingsCard() {
 }
 
 @Composable
-private fun AppSettingsCard() {
+private fun AppSettingsCard(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel,
+    notificationHelper: NotificationHelper
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
@@ -185,18 +210,14 @@ private fun AppSettingsCard() {
                 )
             }
             
-            var startOnBoot by remember { mutableStateOf(false) }
-            var autoStartTasks by remember { mutableStateOf(true) }
-            var enableNotifications by remember { mutableStateOf(true) }
-            
             SettingItem(
                 title = "Iniciar no boot",
                 subtitle = "Iniciar o aplicativo automaticamente após o boot do sistema",
                 icon = Icons.Default.PlayArrow,
                 switch = {
                     Switch(
-                        checked = startOnBoot,
-                        onCheckedChange = { startOnBoot = it }
+                        checked = uiState.startOnBoot,
+                        onCheckedChange = { viewModel.setStartOnBoot(it) }
                     )
                 }
             )
@@ -207,8 +228,8 @@ private fun AppSettingsCard() {
                 icon = Icons.Default.Schedule,
                 switch = {
                     Switch(
-                        checked = autoStartTasks,
-                        onCheckedChange = { autoStartTasks = it }
+                        checked = uiState.autoStartTasks,
+                        onCheckedChange = { viewModel.setAutoStartTasks(it) }
                     )
                 }
             )
@@ -219,19 +240,26 @@ private fun AppSettingsCard() {
                 icon = Icons.Default.Notifications,
                 switch = {
                     Switch(
-                        checked = enableNotifications,
-                        onCheckedChange = { enableNotifications = it }
+                        checked = uiState.enableNotifications,
+                        onCheckedChange = { viewModel.setEnableNotifications(it) }
                     )
                 }
             )
+            
+            // Expanded notification settings when notifications are enabled
+            if (uiState.enableNotifications) {
+                Spacer(modifier = Modifier.height(8.dp))
+                NotificationSettingsCard(uiState, viewModel, notificationHelper)
+            }
         }
     }
 }
 
 @Composable
-private fun SystemSettingsCard() {
-    var rootStatus by remember { mutableStateOf("Toque em verificar para testar") }
-    var isCheckingRoot by remember { mutableStateOf(false) }
+private fun SystemSettingsCard(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
@@ -258,24 +286,14 @@ private fun SystemSettingsCard() {
             
             SettingItem(
                 title = "Status Root",
-                subtitle = rootStatus,
+                subtitle = uiState.rootStatus,
                 icon = Icons.Default.Security,
                 action = {
                     OutlinedButton(
-                        onClick = { 
-                            isCheckingRoot = true
-                            // Simulate root check
-                            CoroutineScope(Dispatchers.IO).launch {
-                                kotlinx.coroutines.delay(1000)
-                                withContext(Dispatchers.Main) {
-                                    rootStatus = "Sem acesso root"
-                                    isCheckingRoot = false
-                                }
-                            }
-                        },
-                        enabled = !isCheckingRoot
+                        onClick = { viewModel.checkRootAccess() },
+                        enabled = !uiState.isCheckingRoot
                     ) {
-                        if (isCheckingRoot) {
+                        if (uiState.isCheckingRoot) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp
@@ -292,10 +310,9 @@ private fun SystemSettingsCard() {
                 subtitle = "Executar comandos com privilégios root quando disponível",
                 icon = Icons.Default.AdminPanelSettings,
                 switch = {
-                    var useRoot by remember { mutableStateOf(false) }
                     Switch(
-                        checked = useRoot,
-                        onCheckedChange = { useRoot = it }
+                        checked = uiState.useRootPermissions,
+                        onCheckedChange = { viewModel.setUseRootPermissions(it) }
                     )
                 }
             )
@@ -304,7 +321,12 @@ private fun SystemSettingsCard() {
 }
 
 @Composable
-private fun SecuritySettingsCard() {
+private fun SecuritySettingsCard(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel,
+    biometricHelper: BiometricHelper,
+    context: android.content.Context
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
@@ -329,17 +351,38 @@ private fun SecuritySettingsCard() {
                 )
             }
             
-            var requireAuth by remember { mutableStateOf(false) }
-            var encryptScripts by remember { mutableStateOf(true) }
-            
             SettingItem(
                 title = "Autenticação biométrica",
-                subtitle = "Exigir autenticação para executar scripts sensíveis",
+                subtitle = if (biometricHelper.isBiometricAvailable(context)) {
+                    "Exigir autenticação para executar scripts sensíveis - ${biometricHelper.getBiometricStatus(context)}"
+                } else {
+                    "Biometria não disponível - ${biometricHelper.getBiometricStatus(context)}"
+                },
                 icon = Icons.Default.Fingerprint,
                 switch = {
                     Switch(
-                        checked = requireAuth,
-                        onCheckedChange = { requireAuth = it }
+                        checked = uiState.requireBiometricAuth,
+                        enabled = biometricHelper.isBiometricAvailable(context),
+                        onCheckedChange = { enabled ->
+                            if (enabled && context is FragmentActivity) {
+                                biometricHelper.authenticate(
+                                    activity = context,
+                                    title = "Ativar Autenticação Biométrica",
+                                    subtitle = "Confirme sua identidade para ativar a autenticação biométrica",
+                                    onSuccess = {
+                                        viewModel.setRequireBiometricAuth(true)
+                                    },
+                                    onError = { error ->
+                                        // Error handled, keep current state
+                                    },
+                                    onFailed = {
+                                        // Authentication failed, keep current state
+                                    }
+                                )
+                            } else {
+                                viewModel.setRequireBiometricAuth(enabled)
+                            }
+                        }
                     )
                 }
             )
@@ -350,8 +393,8 @@ private fun SecuritySettingsCard() {
                 icon = Icons.Default.Lock,
                 switch = {
                     Switch(
-                        checked = encryptScripts,
-                        onCheckedChange = { encryptScripts = it }
+                        checked = uiState.encryptScripts,
+                        onCheckedChange = { viewModel.setEncryptScripts(it) }
                     )
                 }
             )
@@ -359,8 +402,196 @@ private fun SecuritySettingsCard() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AboutCard() {
+private fun NotificationSettingsCard(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel,
+    notificationHelper: NotificationHelper
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Icon(
+                    Icons.Default.NotificationsActive,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Configurações Avançadas",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            
+            var showChannelDropdown by remember { mutableStateOf(false) }
+            
+            // Notification Channels Section
+            Text(
+                text = "Canal de Notificação",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            ExposedDropdownMenuBox(
+                expanded = showChannelDropdown,
+                onExpandedChange = { showChannelDropdown = !showChannelDropdown }
+            ) {
+                OutlinedTextField(
+                    value = uiState.selectedNotificationChannel,
+                    onValueChange = { },
+                    readOnly = true,
+                    label = { Text("Tipo de Canal") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = showChannelDropdown)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                
+                ExposedDropdownMenu(
+                    expanded = showChannelDropdown,
+                    onDismissRequest = { showChannelDropdown = false }
+                ) {
+                    listOf(
+                        "Execução de Tarefas",
+                        "Alertas do Sistema", 
+                        "Atualizações",
+                        "Depuração"
+                    ).forEach { channel ->
+                        DropdownMenuItem(
+                            text = { Text(channel) },
+                            onClick = {
+                                viewModel.setSelectedNotificationChannel(channel)
+                                showChannelDropdown = false
+                            }
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Notification Types Section
+            Text(
+                text = "Tipos de Notificação",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            SettingItem(
+                title = "Tarefa concluída",
+                subtitle = "Notificar quando uma tarefa for executada com sucesso",
+                icon = Icons.Default.CheckCircle,
+                switch = {
+                    Switch(
+                        checked = uiState.taskCompletionNotifs,
+                        onCheckedChange = { viewModel.setTaskCompletionNotifs(it) }
+                    )
+                }
+            )
+            
+            SettingItem(
+                title = "Falha na tarefa",
+                subtitle = "Notificar quando uma tarefa falhar na execução",
+                icon = Icons.Default.Error,
+                switch = {
+                    Switch(
+                        checked = uiState.taskFailureNotifs,
+                        onCheckedChange = { viewModel.setTaskFailureNotifs(it) }
+                    )
+                }
+            )
+            
+            SettingItem(
+                title = "Alertas do sistema",
+                subtitle = "Notificar sobre problemas de sistema e recursos",
+                icon = Icons.Default.Warning,
+                switch = {
+                    Switch(
+                        checked = uiState.systemAlertsNotifs,
+                        onCheckedChange = { viewModel.setSystemAlertsNotifs(it) }
+                    )
+                }
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Notification Preferences Section
+            Text(
+                text = "Preferências",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            SettingItem(
+                title = "Som",
+                subtitle = "Reproduzir som ao receber notificações",
+                icon = Icons.Default.VolumeUp,
+                switch = {
+                    Switch(
+                        checked = uiState.notificationSound,
+                        onCheckedChange = { viewModel.setNotificationSound(it) }
+                    )
+                }
+            )
+            
+            SettingItem(
+                title = "Vibração",
+                subtitle = "Vibrar dispositivo ao receber notificações",
+                icon = Icons.Default.Vibration,
+                switch = {
+                    Switch(
+                        checked = uiState.notificationVibration,
+                        onCheckedChange = { viewModel.setNotificationVibration(it) }
+                    )
+                }
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Test Notification Button
+            OutlinedButton(
+                onClick = { 
+                    notificationHelper.sendTestNotification()
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Default.Send,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Testar Notificação")
+            }
+        }
+    }
+}
+
+@Composable
+private fun AboutCard(
+    showLicensesDialog: Boolean,
+    onShowLicensesDialog: (Boolean) -> Unit,
+    showPrivacyDialog: Boolean,
+    onShowPrivacyDialog: (Boolean) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
@@ -395,16 +626,86 @@ private fun AboutCard() {
                 title = "Licenças",
                 subtitle = "Ver licenças de código aberto",
                 icon = Icons.Default.Article,
-                onClick = { /* TODO: Show licenses */ }
+                onClick = { 
+                    onShowLicensesDialog(true)
+                }
             )
             
             SettingItem(
                 title = "Política de privacidade",
                 subtitle = "Como protegemos seus dados",
                 icon = Icons.Default.PrivacyTip,
-                onClick = { /* TODO: Show privacy policy */ }
+                onClick = { 
+                    onShowPrivacyDialog(true)
+                }
             )
         }
+    }
+    
+    // Licenses Dialog
+    if (showLicensesDialog) {
+        AlertDialog(
+            onDismissRequest = { onShowLicensesDialog(false) },
+            title = { Text("Licenças de Código Aberto") },
+            text = {
+                Text(
+                    text = """
+                        TCron utiliza as seguintes bibliotecas de código aberto:
+                        
+                        • Jetpack Compose - Apache License 2.0
+                        • Kotlin - Apache License 2.0
+                        • Hilt - Apache License 2.0
+                        • Material Design Components - Apache License 2.0
+                        • AndroidX Libraries - Apache License 2.0
+                        • Gson - Apache License 2.0
+                        
+                        Agradecemos a todos os desenvolvedores que contribuem para o ecossistema de código aberto.
+                    """.trimIndent()
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { onShowLicensesDialog(false) }) {
+                    Text("Fechar")
+                }
+            }
+        )
+    }
+    
+    // Privacy Policy Dialog
+    if (showPrivacyDialog) {
+        AlertDialog(
+            onDismissRequest = { onShowPrivacyDialog(false) },
+            title = { Text("Política de Privacidade") },
+            text = {
+                Text(
+                    text = """
+                        Política de Privacidade do TCron
+                        
+                        O TCron respeita sua privacidade e se compromete a proteger seus dados pessoais.
+                        
+                        Coleta de Dados:
+                        • O aplicativo armazena localmente os scripts e agendamentos que você criar
+                        • Configurações do aplicativo são salvas no dispositivo
+                        • Nenhum dado é enviado para servidores externos
+                        
+                        Uso dos Dados:
+                        • Todos os dados permanecem exclusivamente no seu dispositivo
+                        • Scripts e configurações são usados apenas para funcionalidade do app
+                        
+                        Segurança:
+                        • Dados podem ser criptografados localmente se habilitado
+                        • Autenticação biométrica opcional para maior segurança
+                        
+                        O TCron é um aplicativo offline que não coleta nem compartilha dados pessoais.
+                    """.trimIndent()
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { onShowPrivacyDialog(false) }) {
+                    Text("Fechar")
+                }
+            }
+        )
     }
 }
 

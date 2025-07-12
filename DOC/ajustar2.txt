@@ -1,0 +1,109 @@
+# Ajustes Técnicos e Validações para o App em Kotlin
+
+## Notificações
+- O botão de notificações na tela inicial **não abre** a janela dedicada; deve ser implementada uma tela similar à de notificações do YouTube para Android.
+- Essa tela deve listar:
+  - 🔴 Notificações **não lidas** com:
+    - Indicador visual (pontinho)
+    - Cor sutilmente diferente
+  - ✅ Notificações **lidas**
+- Ambas devem estar na mesma tela, separadas por seção.
+- Cada item deve conter:
+  - Nome da tarefa/script executado
+  - Tempo desde a notificação (contador)
+
+## Dados Fictícios
+- Remover todos os dados de teste/fictícios do app.
+- Substituir por dados reais.
+- Caso não haja dados:
+  - Mostrar mensagem como `Nenhuma atividade disponível` nos **dashboards** e **cards**
+
+## Menu Drawer
+- Corrigir chamada do menu drawer que abre ao deslizar qualquer tela da esquerda.
+
+## Tema
+- Corrigir comportamento da escolha de tema (Claro, Escuro, Padrão do sistema)
+  - Cores devem ser aplicadas corretamente ao tema escolhido
+
+## Configurações
+- ✅ Botão "Iniciar no boot":
+  - Acionável mas **não permanece ativo** ao sair
+- 🔔 Configurações de notificações:
+  - Botão de teste não vibra nem emite som
+  - Tela de configurações do Android não mostra opções próprias do app
+- 🛡️ Botão de root funcional:
+  - Solicita acesso root
+  - Permissão elevada ativa, mas desativa ao sair
+- 🔐 Autenticação biométrica:
+  - Habilita, mas não solicita cadastro de digital
+  - Desativa ao sair
+- 📜 Licenças e Política de Privacidade:
+  - Botões não abrem nem indicam definição pendente
+  - Adicionar mensagem “Disponível em breve”
+
+## FAB (Floating Action Button)
+### ➖ Deletar Script
+- Abre tela organizada
+- ❌ Possui dados fictícios — **remover**
+- 🔘 Botão "+" e ícone de pasta **não funcionam**
+
+### 📅 Criar Agendamento
+- Tela abre normalmente
+- ⚠ Atividade não é salva e agendamento não funciona
+- Adicionar botão de "Testar" comando antes de salvar
+- Incluir tarefas pré-programadas para testes
+  - Devem ser **editáveis, desativáveis, removíveis**
+
+### 🐍 Criar Script Python & 🐚 Shell
+- Criar telas dedicadas com:
+  - Campo para colar código
+  - Nome e descrição
+  - Botão de teste e execução
+  - Mostrar saída: logs, erros e sucesso
+
+## Tela Inicial
+- .
+  .
+  . Menu de ações no canto superior direito:
+  
+- Botão funciona, opções não
+- 🧾 Resumo do Sistema:
+  - Incluir status do root com mesma padronização
+- 🧠 Acessibilidade:
+  - Ao clicar e segurar em drawer, ações, notificações ou voltar:
+    - Mostrar nome da função correspondente
+
+## Cards
+- As cores padrão dos cards devem ser **dinâmicas** conforme tema (claro, escuro, sistema)
+
+## Armazenamento
+- Verificar persistência de dados em todas telas
+
+## Testes Gerais
+- Fazer *check-in* em cada ajuste após validar funcionalidade
+- Testar:
+  - Botões
+  - Navegação
+  - Telas
+  - Funcionalidades completas do app
+
+## Comando de Teste
+Executar este comando para ativar rotação de tela:
+su -c 'content insert --uri content://settings/system --bind name:s:accelerometer_rotation --bind value:i:1'
+
+- Criar script com esse comando em:
+  - Shell
+  - Python
+- Configurar como **tarefa**
+- Verificar:
+  - Funcionamento
+  - Aparecimento nos cards e notificações
+  - Inclusão na janela de notificações
+  - Previsão de execução no card correspondente
+
+## Finalização
+- Após ajustes e validações:
+  - Atualizar `README.md`
+  - Incluir documentação final com as novas funcionalidades
+
+

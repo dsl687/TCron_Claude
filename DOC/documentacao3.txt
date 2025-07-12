@@ -1,0 +1,188 @@
+===============================
+DOCUMENTAÇÃO DO APLICATIVO
+===============================
+
+NOME DO APP: TCron – Agendador de Tarefas com Scripts e Automação Avançada
+PACKAGE: com.tcron
+DESCRIÇÃO:
+TaskRoot é um aplicativo Android avançado para automação de tarefas, execução de scripts (Shell, Bash, Python), agendamentos personalizados e controle de ações do sistema. Com suporte a permissões root, terminal embutido, notificações inteligentes e interface moderna, o app oferece controle total sobre o dispositivo.
+
+===============================
+TECNOLOGIAS E FERRAMENTAS
+===============================
+
+- IDE: Android Studio
+- Linguagem: Kotlin com Kotlin DSL
+- Interface: Material Design 3 + Jetpack Compose (opcional)
+- Banco de Dados: Room (SQLite)
+- Versão mínima do Android: API 29 (Android 10)
+- Versão alvo: Android 15+ com suporte a Android 16
+- Formatos de arquivos:
+  - Scripts: .sh, .py
+  - Exportação/Importação: .json, .xml
+  - Logs: .log, .txt
+
+===============================
+FUNCIONALIDADES PRINCIPAIS
+===============================
+
+1. EXECUÇÃO DE TAREFAS
+----------------------
+- Suporte a scripts:
+  - Shell
+  - Bash
+  - Python
+  - Shell + Python combinados
+- Ações automatizadas:
+  - Reiniciar dispositivo
+  - Desligar dispositivo
+  - Reiniciar Wi-Fi
+  - Ativar/desativar Wi-Fi
+  - Aplicar wakelock
+- Agendamentos:
+  - Horários múltiplos
+  - Datas específicas
+  - Repetição (diária, semanal, mensal)
+  - Execução única ou contínua
+- Permissões root (opcional por tarefa)
+
+2. TELA INICIAL
+---------------
+- Cards com:
+  - Nome da tarefa
+  - Tipo (Shell, Python, Agendamento)
+  - Status (Ativa/Inativa)
+  - Contador dinâmico (tempo restante até execução)
+- Botão flutuante “+” com mini botões:
+  - Criar script Shell
+  - Criar script Python
+  - Criar script combinado
+  - Criar agendamento
+- Menu superior:
+  - Lupa (pesquisa dinâmica)
+  - Três pontinhos (atualizar, procurar, filtrar)
+- Filtros:
+  - Tipo de tarefa
+  - Ativas/Inativas
+
+3. MENU HAMBURGER
+-----------------
+- Configurações
+- Verificar atualizações
+- Logs
+- Ver atividades (tarefas programadas)
+- Sobre o app
+
+4. CRIAÇÃO DE TAREFAS
+---------------------
+- Tipo: Shell, Python, Agendamento
+- Campos:
+  - Nome
+  - Descrição (opcional)
+  - Código/script
+  - Horários e datas
+  - Repetição ou execução única
+  - Requer root?
+  - Notificações inteligentes
+  - Modo de teste
+  - Permissões de execução (chmod)
+    - Proprietário, grupo, outros
+    - Leitura, escrita, execução
+
+5. TERMINAL EMBUTIDO
+--------------------
+- Execução de comandos em tempo real
+- Suporte a comandos com ou sem root
+- Histórico de comandos
+- Sugestões de comandos recentes
+
+6. FUNCIONALIDADES AVANÇADAS
+----------------------------
+- Histórico de execuções
+- Modo de teste (execução simulada)
+- Notificações inteligentes
+- Plugins e extensões
+- Dashboard com estatísticas:
+  - Execuções
+  - Falhas
+  - Tempo médio
+  - Tarefas ativas
+- Exportar/Importar tarefas
+- Widget de tela inicial
+- Backup automático local
+- Segurança com senha ou biometria
+
+7. CONFIGURAÇÕES DO APP
+------------------------
+- Tema: Claro, Escuro, Amoled
+- Notificações: Ativar/desativar, sons
+- Economia de bateria: Ativar/desativar otimizações
+- Permissões root: Solicitar/verificar
+- Iniciar com o sistema (boot)
+- Terminal embutido: Ativar/desativar
+- Captura de informações do dispositivo:
+  - Nome do dispositivo
+  - Fabricante
+  - Modelo
+  - Versão do Android
+  - Build
+  - Número de série (se permitido)
+- Monitoramento de uso de recursos:
+  - Memória RAM
+  - CPU
+  - Bateria
+  - Análise por tarefa (se possível)
+
+===============================
+BIBLIOTECAS E DEPENDÊNCIAS
+===============================
+
+- Room (persistência de dados)
+- WorkManager (tarefas agendadas)
+- Coroutine + Flow (concorrência)
+- Material Components
+- RootTools / libsu (execução com root)
+- MPAndroidChart (dashboard)
+- Gson / Moshi (JSON)
+- OkHttp / Retrofit (atualizações e rede)
+- Accompanist (temas e animações)
+- Jetpack Security (biometria e criptografia)
+
+===============================
+ESTRUTURA INICIAL DO PROJETO
+===============================
+
+📁 app/
+ ┣ 📁 src/
+ ┃ ┣ 📁 main/
+ ┃ ┃ ┣ 📁 java/com/taskroot/
+ ┃ ┃ ┃ ┣ MainActivity.kt
+ ┃ ┃ ┃ ┣ ui/
+ ┃ ┃ ┃ ┣ data/
+ ┃ ┃ ┃ ┣ model/
+ ┃ ┃ ┃ ┣ viewmodel/
+ ┃ ┃ ┃ ┣ scripts/
+ ┃ ┃ ┃ ┣ terminal/
+ ┃ ┃ ┃ ┣ utils/
+ ┃ ┃ ┣ 📁 res/
+ ┃ ┃ ┃ ┣ layout/
+ ┃ ┃ ┃ ┣ drawable/
+ ┃ ┃ ┃ ┣ values/
+ ┃ ┃ ┃ ┣ xml/
+ ┃ ┃ ┣ AndroidManifest.xml
+ ┣ build.gradle.kts
+ ┣ settings.gradle.kts
+
+===============================
+OBSERVAÇÕES FINAIS
+===============================
+
+- O app será modular, com suporte a extensões futuras
+- Scripts serão armazenados localmente com permissões configuráveis
+- O app poderá operar com ou sem root, dependendo da tarefa
+- A interface será responsiva e adaptada para tablets e celulares
+- O app será otimizado para consumo mínimo de bateria
+
+===============================
+FIM DO DOCUMENTO
+===============================

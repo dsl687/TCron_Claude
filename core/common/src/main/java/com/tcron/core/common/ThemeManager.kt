@@ -2,28 +2,29 @@ package com.tcron.core.common
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
-import javax.inject.Singleton
 
 enum class ThemeMode {
     LIGHT, DARK, SYSTEM
 }
 
-@Singleton
+@HiltViewModel
 class ThemeManager @Inject constructor(
     @ApplicationContext private val context: Context
-) {
+) : ViewModel() {
     private val prefs: SharedPreferences = context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
     
-    var currentTheme by mutableStateOf(getThemeMode())
-        private set
+    private val _currentTheme = MutableStateFlow(getThemeMode())
+    val currentTheme: StateFlow<ThemeMode> = _currentTheme.asStateFlow()
     
     fun setThemeMode(themeMode: ThemeMode) {
-        currentTheme = themeMode
+        _currentTheme.value = themeMode
         prefs.edit().putString("theme_mode", themeMode.name).apply()
     }
     

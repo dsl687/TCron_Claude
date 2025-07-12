@@ -34,15 +34,15 @@ private val LightColorScheme = lightColorScheme(
     primary = TCronTeal40,
     secondary = TCronTealGrey40,
     tertiary = TCronGreen40,
-    background = TCronDarkBackground,
-    surface = TCronDarkSurface,
-    onPrimary = TCronDarkOnSurface,
-    onSecondary = TCronDarkOnSurface,
-    onTertiary = TCronDarkOnSurface,
-    onBackground = TCronDarkOnSurface,
-    onSurface = TCronDarkOnSurface,
-    surfaceVariant = TCronDarkCard,
-    onSurfaceVariant = TCronDarkOnSurface
+    background = TCronLightBackground,
+    surface = TCronLightSurface,
+    onPrimary = TCronLightBackground,
+    onSecondary = TCronLightBackground,
+    onTertiary = TCronLightBackground,
+    onBackground = TCronLightOnSurface,
+    onSurface = TCronLightOnSurface,
+    surfaceVariant = TCronLightCard,
+    onSurfaceVariant = TCronLightOnSurface
 )
 
 @Composable
@@ -58,7 +58,14 @@ fun TCronTheme(
         com.tcron.core.common.ThemeMode.SYSTEM -> systemInDarkTheme
     }
     
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
     
     val view = LocalView.current
     if (!view.isInEditMode) {

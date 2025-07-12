@@ -1,0 +1,140 @@
+############################
+CHECKLIST DE VERIFICAÇÃO DO APP TCron
+############################
+
+Versão: 1.0  
+Plataforma: Android 10+  
+Linguagem: Kotlin (Jetpack Compose, Clean Architecture, MVVM, Hilt)  
+Última revisão: [Atualizar com data da verificação]
+
+==============================
+1. BOTÃO FAB E AÇÕES
+==============================
+☐ Verificar se todos os botões do FAB estão funcionando:
+   - Carregar Script (.sh/.py)
+   - Criar Script Python
+   - Criar Script Shell
+   - Criar Agendamento → corrigir tela preta
+   - Abrir Terminal (OK)
+
+☐ Implementar ações para cada botão se ausentes  
+☐ Testar cada botão em tempo real e validar resposta esperada  
+☐ Incluir logs de sucesso/falha por ação
+
+==============================
+2. MENU DE AÇÕES CONTEXTUAIS
+==============================
+☐ Verificar se opções são exibidas corretamente  
+☐ Implementar ações reais para cada item  
+☐ Testar execução após salvar/editar/excluir  
+☐ Validar logs gerados por ação
+
+==============================
+3. TELA INICIAL E RESUMO DO SISTEMA
+==============================
+☐ Cards de tarefas funcionando (OK)  
+☐ Card de "Resumo do sistema":
+   - Ativar atualização automática (a cada X minutos)
+   - Validar funcionamento das métricas: CPU, RAM, bateria
+
+==============================
+4. MENU DRAWER
+==============================
+☐ Restringir menu lateral apenas à tela inicial  
+☐ Reduzir área sensível do gesto para o canto esquerdo  
+☐ Impedir abertura por gesto em demais telas
+
+==============================
+5. CONFIGURAÇÕES DE APARÊNCIA
+==============================
+☐ Verificar seletor de tema: Claro, Escuro, Padrão do Sistema  
+☐ Implementar reatividade da UI ao alterar tema  
+☐ Persistir escolha entre sessões  
+☐ Testar com diferentes tipos de tela (dark/light)
+
+==============================
+6. CONFIGURAÇÕES E NOTIFICAÇÕES
+==============================
+☐ Expandir configurações de notificação:
+   - Tipo de canal
+   - Preferência por som, visual, etc.
+
+☐ Incluir botão de "Testar notificação"  
+☐ Validar chegada via canal correto (mesmo em segundo plano)
+
+==============================
+7. ROOT E PERMISSÕES ELEVADAS
+==============================
+☐ Verificar retorno real do status Root  
+☐ Ao ativar permissões elevadas:
+   - Solicitar root via libsu
+   - Validar se a permissão foi concedida
+
+☐ Adicionar mensagens técnicas em caso de falha  
+☐ Testar múltiplos dispositivos com e sem root
+
+==============================
+8. SEGURANÇA
+==============================
+☐ Biometria:
+   - Ativar `BiometricPrompt` ao selecionar opção
+   - Validar cadastro biométrico e autenticação
+
+☐ Criptografia de scripts:
+   - Validar se está sendo aplicada de fato
+   - Exibir mensagem de status: criptografado/descriptografado
+
+==============================
+9. SOBRE E LEGAIS
+==============================
+☐ Verificar versão do app (OK)  
+☐ Licenças:
+   - Implementar abertura de popup com texto placeholder
+
+☐ Política de Privacidade:
+   - Implementar aviso de “em breve disponível”
+   - Testar navegação ou modal básico
+
+==============================
+10. README.md E DOCUMENTAÇÃO FINAL
+==============================
+☐ Criar ou atualizar README.md para cada módulo:
+   - core/
+   - feature/
+   - app/
+   - res/
+
+☐ Incluir:
+   - Propósito
+   - Principais classes
+   - Fluxo de dados
+   - Interações entre camadas
+
+☐ Atualizar documentação técnica geral em `/DOC/documentacao.txt`:
+   - Incluir status real de cada módulo
+   - Corrigir inconsistências
+   - Adicionar detalhes dos testes executados
+   - Remover ou resolver todos os `TODOs` pendentes
+
+☐ Para cada TODO identificado:
+   - Implementar a lógica correspondente
+   - Validar com testes unitários e instrumentais
+   - Marcar como resolvido
+
+==============================
+11. TESTE FINAL DE FUNCIONAMENTO
+==============================
+☐ Realizar testes gerais no app completo:
+   - Navegação
+   - Ações críticas
+   - Tarefas programadas
+   - Funcionalidades em tempo real
+
+☐ Reanalisar documento `/DOC/documentacao.txt` `/DOC/documentacao1.txt` `/DOC/documentacao2.txt` `/DOC/documentacao3.txt`
+☐ Verificar se todas instruções estão completas e corretas  
+☐ Gerar versão final da documentação
+
+############################
+FIM DO CHECKLIST
+############################
+

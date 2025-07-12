@@ -1,0 +1,145 @@
+TCron – Agendador de Tarefas com Scripts e Terminal Avançado  
+PACKAGE: com.tcron  
+VERSÃO INICIAL: 1.0  
+PLATAFORMA: Android 10+ (API 29 a 34/35, ajustável conforme necessidade de compatibilidade)  
+LINGUAGEM: Kotlin + Kotlin DSL  
+ARQUITETURA: Clean Architecture + MVVM + Hilt  
+INTERFACE: Jetpack Compose + Material Design 3
+
+==============================
+OBJETIVO DO APP
+==============================
+Criar um aplicativo Android de automação para agendar e executar scripts Shell/Python, com terminal embutido completo, execução persistente após boot, permissões root opcionais, dashboard dinâmico em tempo real e notificações internas.
+
+==============================
+FUNCIONALIDADES PRINCIPAIS
+==============================
+
+📂 Terminal Embutido:
+- Shell padrão: ZSH com editor Nano integrado
+- Suporte completo a bins Linux: libpty, BusyBox, ncurses
+- Saídas coloridas (ANSI) e histórico persistente
+- Execução com ou sem root (libsu, RootTools)
+- Sugestões de comandos, modo sandbox e logs por tarefa (.log/.txt)
+- Menu: salvar como tarefa, copiar/limpar terminal
+
+📂 Tarefas e Scripts:
+- Tipos: Shell, Python e combinados
+- Criadas manualmente, via terminal ou ao carregar arquivos .sh/.py
+- Configurações chmod, descrição, notificações inteligentes
+- Exportação/importação em .json ou .xml
+
+📂 Agendamento:
+- TimePicker/DatePicker com opções de repetição (diária/semanal/mensal/após boot)
+- Execução contínua ou única, com atraso inicial e duração personalizada
+
+📂 Tela Inicial:
+- Cards filtráveis com nome, tipo, status e tempo restante
+- FAB modular com atalhos (criar scripts, abrir terminal, agendar tarefa, carregar arquivo)
+
+📂 Dashboard:
+- Gráficos dinâmicos e atualizados em tempo real com MPAndroidChart
+- Métricas: tempo médio, falhas, consumo de CPU, RAM e bateria
+- Registro de data e hora no formato HH:MM:SS – DD:MM:YY
+
+📂 Configurações:
+- Temas: Claro, Escuro e Amoled
+- Cores de destaque dinâmicas (selecionáveis pelo usuário)
+- Idioma da interface
+- Biometria para ações sensíveis
+- Diretório base customizado para scripts
+- Criptografia local via Jetpack Security
+- Permissões root específicas por tarefa
+- Inicialização automática com o sistema
+
+📂 Notificações In-App:
+- Ícone de sino no canto superior direito
+- Contador de tarefas executadas e notificações não lidas
+- Atualização visual em tempo real
+
+==============================
+MODOS DE BUILD (DEBUG / RELEASE)
+==============================
+
+- Dois sabores: `debug` e `release`
+- No `debug`, exibir aviso visual claro (ex: banner vermelho no topo)
+- `applicationIdSuffix` e `versionNameSuffix` configurados
+- Assinaturas distintas (`debug.keystore` / `release.jks`)
+- Troca fácil entre builds no Android Studio
+- `BuildConfig.IS_DEBUG_BUILD` disponível no código
+- Funcionalidades extras habilitadas no debug (logs, simulações)
+
+==============================
+BIBLIOTECAS E DEPENDÊNCIAS
+==============================
+- Compose BOM, Material Design 3, Accompanist
+- Room, Coroutine, Flow
+- WorkManager, AlarmManager, BroadcastReceiver
+- libpty, BusyBox, ncurses, nano, ZSH
+- libsu, RootTools
+- Retrofit, OkHttp, Gson/Moshi
+- Jetpack Security + Biometria
+- MPAndroidChart
+- JUnit, Espresso, Mockito/Kluent
+- Hilt (DI) + Kotlin Kapt
+- DataStore Preferences
+
+==============================
+ESTRUTURA MODULAR RECOMENDADA
+==============================
+
+📁 core/
+ ┣ common/            → Utilitários e extensões
+ ┣ data/              → Banco local, DataStore, DAOs
+ ┣ domain/            → UseCases e modelos globais
+
+📁 feature/
+ ┣ home/              → Tela inicial e FAB
+ ┣ terminal/          → Shell e UI do terminal
+ ┣ task/              → Criar, listar e executar tarefas
+ ┣ dashboard/         → Gráficos e estatísticas
+ ┣ settings/          → Preferências e segurança
+ ┣ notification/      → Ícone e gerenciamento interno de alertas
+
+📁 app/
+ ┣ navigation/        → Rotas e estrutura modular de navegação
+ ┣ model/             → Modelos de dados compartilhados
+ ┣ utils/             → Helpers gerais
+ ┣ viewmodel/         → Orquestradores MVVM
+ ┣ ui/                → Telas e componentes comuns
+ ┣ MainActivity.kt    → Composable raiz e controlador do app
+
+📁 res/
+ ┣ drawable/          → Ícones e assets visuais
+ ┣ values/            → Temas, cores e strings
+ ┣ xml/               → Navegação e preferências
+
+==============================
+DOCUMENTAÇÃO FINAL
+==============================
+✅ Criar um `README.md` para cada módulo explicando:
+- Propósito
+- Estrutura interna
+- Principais classes e responsabilidades
+
+✅ Criar:
+📘 Manual de uso (usuário final): funcionalidades e instruções práticas  
+📗 Manual técnico (dev): arquitetura, bibliotecas, fluxo de dados e manutenção
+
+==============================
+FLUXO DE USO SUGERIDO
+==============================
+1. Criar script no terminal → salvar como tarefa  
+2. Personalizar tarefa → definir permissões e agendamento  
+3. Monitorar execução → acompanhar estatísticas e histórico  
+4. Interagir com o dashboard → analisar performance e falhas  
+5. Usar modo debug para testes → alternar facilmente conforme build
+
+==============================
+INSTRUÇÃO FINAL
+==============================
+✅ Inicie o projeto com base neste escopo  
+✅ Modularize tudo: cada tela, FAB, navegação, modelo e fluxo deve ter seu próprio módulo  
+✅ Se algo estiver ambíguo, proponha alternativas. Caso contrário, pode seguir com autonomia total.
+
+

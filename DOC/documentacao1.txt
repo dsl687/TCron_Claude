@@ -1,0 +1,194 @@
+NOME: TCron – Agendador de Tarefas com Scripts e Terminal Avançado
+PACKAGE: com.tcron
+VERSÃO INICIAL: 1.0
+PLATAFORMA: Android 10+ (API 29 até 34/35)
+
+==============================
+OBJETIVO DO PROJETO
+==============================
+Desenvolver um aplicativo Android avançado para automação e agendamento de scripts com suporte a permissões root, terminal completo, agendamento de tarefas persistentes e controle do sistema via scripts Shell e Python.
+
+==============================
+ABORDAGEM DE DESENVOLVIMENTO
+==============================
+
+1. Arquitetura:
+----------------
+- Padrão: Clean Architecture com MVVM
+- Camadas: Domain / Data / Presentation
+- Separação clara entre lógica, interface e dados
+- Injeção de dependência com Hilt
+
+2. Metodologia:
+---------------
+- Desenvolvimento Iterativo
+- Modularização por funcionalidade
+- Testes unitários e instrumentais desde o início
+- Versionamento com Git
+
+3. Fluxo de Criação:
+--------------------
+- Planejamento com wireframes e fluxogramas
+- Criação de funcionalidades individuais por tela
+- Reutilização de componentes via Jetpack Compose
+- Integração de serviços (terminal, agendamentos, scripts)
+- Foco em desempenho e segurança
+
+==============================
+TELAS E FUNCIONALIDADES
+==============================
+
+1. Tela Inicial:
+----------------
+- Exibe cards de tarefas
+- Filtros por tipo, status, tempo restante
+- Botão FAB expandido com opções:
+  - Criar script Shell
+  - Criar script Python
+  - Criar agendamento
+  - Carregar script (.sh/.py)
+  - Abrir terminal
+
+2. Terminal Embutido:
+---------------------
+- Shell padrão: ZSH
+- Suporte a comandos Linux completos
+- Execução com root e sem root
+- Cores ANSI e suporte ao editor nano
+- Barra superior com menu ⋮:
+  - Salvar como tarefa
+  - Limpar terminal
+  - Copiar conteúdo
+- Histórico e sugestões de comandos
+
+3. Tela de Criação de Scripts:
+------------------------------
+- Editor com syntax highlight (se possível)
+- Campo de nome, tipo (Shell/Python), descrição
+- Permissões chmod por grupo
+- Modo de teste
+- Notificações inteligentes
+
+4. Tela de Agendamento:
+-----------------------
+- TimePicker e DatePicker
+- Repetições:
+  - Diária
+  - Semanal
+  - Mensal
+  - Após boot
+- Duração e atraso configurável
+- Executar sempre ativo / único
+
+5. Tela de Dashboard:
+---------------------
+- Gráficos com MPAndroidChart
+- Execuções por tarefa
+- Falhas
+- Tempo médio
+- Consumo de CPU/RAM/Bateria
+
+6. Tela de Configurações:
+-------------------------
+- Tema: Claro / Escuro / Amoled
+- Idioma
+- Biometria
+- Permissões root
+- Terminal: shell padrão, ativação automática
+- Diretório base para scripts
+
+==============================
+FRAMEWORKS E BIBLIOTECAS
+==============================
+
+Interface:
+- Jetpack Compose
+- Material Design 3
+- Accompanist (temas/animações)
+
+Banco de Dados:
+- Room
+
+Concorrência:
+- Coroutine
+- Flow
+
+Agendamento:
+- AlarmManager
+- BroadcastReceiver
+- WorkManager (como fallback)
+
+Terminal:
+- libpty
+- BusyBox
+- ncurses
+- zsh
+- Nano empacotado ou compilado embutido
+
+Root:
+- libsu
+- RootTools
+
+Redes e atualizações:
+- OkHttp
+- Retrofit
+- Gson/Moshi
+
+Segurança:
+- Jetpack Security
+- Biometria e criptografia local
+
+Gráficos:
+- MPAndroidChart
+
+Testes:
+- JUnit
+- Espresso
+- Mockito/Kluent
+
+==============================
+DIRETÓRIOS DO PROJETO
+==============================
+
+📁 app/src/main/java/com/tcron/app/
+ ┣ ui/              → Telas do app
+ ┣ viewmodel/       → ViewModels
+ ┣ data/            → DAOs e Repositórios
+ ┣ model/           → Models e entidades
+ ┣ terminal/        → Terminal embutido
+ ┣ scripts/         → Manipulação e execução
+ ┣ utils/           → Funções auxiliares
+
+📁 res/
+ ┣ layout/          → Layouts XML (fallback)
+ ┣ drawable/        → Ícones e gráficos
+ ┣ values/          → Strings e temas
+ ┣ xml/             → Navegação e preferências
+
+==============================
+FUNCIONALIDADES EXTRAS
+==============================
+
+- Exportação/Importação de tarefas (.json/.xml)
+- Backup local automático criptografado
+- Execução após reinício do sistema
+- Modo Sandbox para teste de scripts
+- Scripts combinados Shell + Python
+- Logs por tarefa (.log, .txt)
+- Reuso de componentes visuais
+- Diagnóstico do sistema
+
+==============================
+EXECUÇÃO DO PROJETO
+==============================
+
+1. Criar wireframes e fluxogramas das telas
+2. Configurar projeto no Android Studio com arquitetura MVVM
+3. Implementar terminal embutido funcional
+4. Criar telas individuais para cada função principal
+5. Integrar Room e lógica de agendamento com AlarmManager
+6. Implementar sistema de permissões e criptografia
+7. Realizar testes unitários e instrumentais
+8. Otimizar desempenho para dispositivos com pouca bateria
+9. Documentar o app internamente (dev e usuário)
+10. Empacotar scripts e interface para tablets e celulares

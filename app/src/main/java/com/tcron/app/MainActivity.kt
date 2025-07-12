@@ -18,61 +18,81 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.tcron.app.navigation.TCronNavigation
 import com.tcron.app.ui.theme.TCronTheme
 import com.tcron.core.common.ThemeManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    
-    @Inject
-    lateinit var themeManager: ThemeManager
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TCronTheme(themeMode = themeManager.currentTheme) {
+            val themeManager: ThemeManager = hiltViewModel()
+            val currentTheme by themeManager.currentTheme.collectAsState()
+            
+            TCronTheme(themeMode = currentTheme) {
                 val navController = rememberNavController()
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
                 val scope = rememberCoroutineScope()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
                 
-                ModalNavigationDrawer(
-                    drawerState = drawerState,
-                    drawerContent = {
-                        TCronDrawerContent(
-                            onNavigate = { route ->
-                                scope.launch { drawerState.close() }
-                                navController.navigate(route)
-                            },
-                            onCloseDrawer = {
-                                scope.launch { drawerState.close() }
-                            }
-                        )
-                    }
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        // Show debug warning if in debug mode
-                        if (BuildConfig.IS_DEBUG_BUILD) {
-                            DebugWarningBanner()
+                // Only show drawer on home screen
+                val showDrawer = currentRoute == "home"
+                
+                if (showDrawer) {
+                    ModalNavigationDrawer(
+                        drawerState = drawerState,
+                        drawerContent = {
+                            TCronDrawerContent(
+                                onNavigate = { route ->
+                                    scope.launch { drawerState.close() }
+                                    navController.navigate(route)
+                                },
+                                onCloseDrawer = {
+                                    scope.launch { drawerState.close() }
+                                }
+                            )
                         }
-                        
-                        TCronNavigation(
-                            navController = navController,
-                            onOpenDrawer = {
-                                scope.launch { drawerState.open() }
-                            }
-                        )
+                    ) {
+                        AppContent(navController, drawerState, scope)
                     }
+                } else {
+                    AppContent(navController, drawerState, scope)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AppContent(
+    navController: androidx.navigation.NavHostController,
+    drawerState: DrawerState,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Show debug warning if in debug mode
+        if (BuildConfig.IS_DEBUG_BUILD) {
+            DebugWarningBanner()
+        }
+        
+        TCronNavigation(
+            navController = navController,
+            onOpenDrawer = {
+                scope.launch { drawerState.open() }
+            }
+        )
     }
 }
 

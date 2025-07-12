@@ -62,6 +62,15 @@ dependencies {
     // Hilt DI
     implementation("com.google.dagger:hilt-android:2.48.1")
     ksp("com.google.dagger:hilt-compiler:2.48.1")
+    
+    // Biometric authentication
+    implementation("androidx.biometric:biometric:1.1.0")
+    
+    // Notifications
+    implementation("androidx.core:core:1.12.0")
+    
+    // Fragment support for biometric
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
 
     // Testing
     testImplementation("junit:junit:4.13.2")

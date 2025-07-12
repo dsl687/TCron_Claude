@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tcron.core.common.SystemInfoManager
 import com.tcron.core.common.SystemMetrics
 import com.tcron.core.domain.model.Task
+import com.tcron.core.domain.model.AppNotification
 import com.tcron.core.domain.repository.TaskRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,6 +30,7 @@ class HomeViewModel @Inject constructor(
     init {
         loadTasks()
         loadSystemMetrics()
+        startAutoRefresh()
     }
     
     private fun loadTasks() {
@@ -76,11 +79,21 @@ class HomeViewModel @Inject constructor(
     fun refreshSystemMetrics() {
         loadSystemMetrics()
     }
+    
+    private fun startAutoRefresh() {
+        viewModelScope.launch {
+            while (true) {
+                delay(60000) // Refresh every minute
+                loadSystemMetrics()
+            }
+        }
+    }
 }
 
 data class HomeUiState(
     val isLoading: Boolean = false,
     val tasks: List<Task> = emptyList(),
+    val notifications: List<AppNotification> = emptyList(),
     val systemMetrics: SystemMetrics? = null,
     val error: String? = null
 )

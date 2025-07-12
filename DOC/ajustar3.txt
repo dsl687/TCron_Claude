@@ -1,0 +1,103 @@
+Relatório Técnico de Ajustes Funcionais no Aplicativo
+
+1. Notificações:
+- Problema: Ícone abre corretamente a tela, mas mostra alerta falso no icone de notificações na tela inicial.
+- Solução: Validar dados reais antes de renderizar o contador.
+
+Exemplo de código:
+if notifications.exists():
+    show_notification_badge(count=notifications.count())
+else:
+    hide_notification_badge()
+
+2. Menu de Ações:
+- Problema: Ao clicar, o menu fecha e não executa a ação.
+- Solução: Assegurar que o onClick esteja corretamente atribuído.
+
+Exemplo de código:
+actionMenuItem.setOnClickListener {
+    performAction()
+}
+
+3. Criar Script (Python, Shell) e Agendamentos:
+- Problema: Telas abertas normalmente, mas sem salvamento de dados.
+- Solução: Implementar persistência com SharedPreferences, SQLite ou arquivos localmente salvos.
+
+Exemplo de código:
+def save_schedule(schedule):
+    with open("schedules.json", "w") as file:
+        json.dump(schedule, file)
+
+4. Configurações de Tema:
+- Problema: Mudança de tema só aplica após forçar parada do app.
+- Solução: Aplicar tema dinamicamente com recreate da activity.
+
+Exemplo de código:
+setTheme(selectedTheme)
+recreate()
+
+5. Teste de Notificações nas configurações:
+- Problema: Teste não dispara.
+- Solução: Criar método de simulação de notificação.
+
+Exemplo de código:
+fun testNotification(context: Context) {
+    val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        .setContentTitle("Teste")
+        .setContentText("Notificação de teste")
+        .setSmallIcon(R.drawable.ic_notify)
+        .build()
+    NotificationManagerCompat.from(context).notify(TEST_ID, notification)
+}
+
+6. Autenticação Biométrica:
+- Problema: Botão permanece acionado, mas sem solicitar digital.
+- Solução: Integrar BiometricPrompt corretamente.
+
+Exemplo de código:
+val biometricPrompt = BiometricPrompt(...)
+biometricPrompt.authenticate(promptInfo)
+
+7. Telas de Licença e Política de Privacidade:
+- Problema: Telas não são abertas.
+- Solução: Exibir mensagem de funcionalidade futura.
+
+Exemplo de código:
+<TextView
+    android:text="Funcionalidade em desenvolvimento. Aguarde novidades!" />
+
+8. Scripts:
+- Python: Apenas exibe “Teste do script de desenvolvimento…”
+- Shell: Retorna sucesso mas não verifica root.
+- Solução: Implementar verificação real de permissões.
+
+Exemplo de script Bash:
+#!/bin/bash
+if [ "$EUID" -ne 0 ]; then
+  echo "Script requer permissão de root."
+  exit
+fi
+echo "Script executado com sucesso."
+
+9. Comandos Rápidos:
+- Solução: Inserir shebang correto.
+
+Python:
+#!/usr/bin/env python3
+# seu código aqui
+
+Shell:
+#!/bin/bash
+# seus comandos aqui
+
+10. Atualização README.md:
+- Documentar todas correções e novos comportamentos após ajustes.
+
+Exemplo:
+## Atualizações
+- Correções no sistema de notificações.
+- Persistência local de agendamentos.
+- Tema aplicado dinamicamente.
+- Ajuste na autenticação biométrica.
+- Scripts com suporte a root e shebang inserido.
+

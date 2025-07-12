@@ -33,6 +33,10 @@ fun HomeScreen(
     onNavigateToTerminal: () -> Unit = {},
     onNavigateToCreateTask: () -> Unit = {},
     onNavigateToTaskDetail: (String) -> Unit = {},
+    onNavigateToScriptPicker: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
+    onNavigateToCreatePythonScript: () -> Unit = {},
+    onNavigateToCreateShellScript: () -> Unit = {},
     onOpenDrawer: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -43,7 +47,13 @@ fun HomeScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TCronTopBar(
-                onOpenDrawer = onOpenDrawer
+                onOpenDrawer = onOpenDrawer,
+                unreadCount = if (uiState.notifications.isNotEmpty()) uiState.notifications.count { !it.isRead } else 0,
+                onRefreshData = {
+                    viewModel.refreshTasks()
+                    viewModel.refreshSystemMetrics()
+                },
+                onOpenNotifications = onNavigateToNotifications
             )
         },
         floatingActionButton = {
@@ -51,16 +61,20 @@ fun HomeScreen(
                 expanded = showFabMenu,
                 onToggle = { showFabMenu = !showFabMenu },
                 onCreateTask = {
-                    showFabMenu = false
                     onNavigateToCreateTask()
-                },
-                onCreateScript = {
                     showFabMenu = false
-                    // Navigate to create script
+                },
+                onCreatePythonScript = {
+                    onNavigateToCreatePythonScript()
+                    showFabMenu = false
+                },
+                onCreateShellScript = {
+                    onNavigateToCreateShellScript()
+                    showFabMenu = false
                 },
                 onOpenTerminal = {
-                    showFabMenu = false
                     onNavigateToTerminal()
+                    showFabMenu = false
                 }
             )
         }
@@ -105,7 +119,10 @@ fun HomeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TCronTopBar(
-    onOpenDrawer: () -> Unit
+    onOpenDrawer: () -> Unit,
+    unreadCount: Int = 0,
+    onRefreshData: () -> Unit = {},
+    onOpenNotifications: () -> Unit = {}
 ) {
     TopAppBar(
         title = {
@@ -125,6 +142,29 @@ private fun TCronTopBar(
             }
         },
         actions = {
+            // Notification button with badge
+            Box(modifier = Modifier.padding(end = 8.dp)) {
+                IconButton(onClick = onOpenNotifications) {
+                    Icon(
+                        Icons.Default.Notifications,
+                        contentDescription = "Notificações",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+                
+                // Badge with count
+                if (unreadCount > 0) {
+                    Badge(
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    ) {
+                        Text(
+                            text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+            }
+            
             var showMenu by remember { mutableStateOf(false) }
             
             Box {
@@ -144,7 +184,7 @@ private fun TCronTopBar(
                         text = { Text("Atualizar lista") },
                         onClick = { 
                             showMenu = false
-                            // TODO: Refresh data
+                            onRefreshData()
                         },
                         leadingIcon = {
                             Icon(Icons.Default.Refresh, contentDescription = null)
@@ -386,24 +426,24 @@ private fun ScheduledTasksCard(
                 )
             }
             
-            TaskItem(
-                name = "Backup automático",
-                lastRun = "Última: 08/07/2025",
-                status = "Ativo",
-                statusColor = Color(0xFF4CAF50),
-                timeLeft = "53:20",
-                onClick = { /* Navigate to task detail */ }
-            )
-            
-            TaskItem(
-                name = "Limpeza Temp",
-                lastRun = "Última: 09/07/2025",
-                status = "Agendado",
-                statusColor = Color(0xFFFFB74D),
-                timeLeft = "02:05",
-                onClick = { /* Navigate to task detail */ },
-                isLast = true
-            )
+            if (tasks.isEmpty()) {
+                EmptyStateMessage(
+                    message = "Nenhuma tarefa agendada",
+                    subtitle = "Use o botão + para criar uma nova tarefa"
+                )
+            } else {
+                tasks.forEachIndexed { index, task ->
+                    TaskItem(
+                        name = task.name,
+                        lastRun = task.lastExecutionTime?.let { "Última: ${it}" } ?: "Nunca executada",
+                        status = if (task.isEnabled) "Ativo" else "Inativo",
+                        statusColor = if (task.isEnabled) Color(0xFF4CAF50) else Color(0xFF9E9E9E),
+                        timeLeft = task.schedule?.scheduledTime?.let { "Próxima: ${it}" } ?: "--:--",
+                        onClick = { onTaskClick(task.id) },
+                        isLast = index == tasks.size - 1
+                    )
+                }
+            }
         }
     }
 }
@@ -498,23 +538,9 @@ private fun ScriptsCard() {
                 )
             }
             
-            ScriptItem(
-                name = "Script Python - Monitor",
-                lastRun = "Última: 09/07/2025",
-                status = "Ativo",
-                statusColor = Color(0xFF4CAF50),
-                runtime = "08:00",
-                icon = Icons.Default.Code
-            )
-            
-            ScriptItem(
-                name = "Shell - Reset de Cache",
-                lastRun = "Última: 09/07/2025",
-                status = "Inativo",
-                statusColor = Color(0xFF9E9E9E),
-                runtime = "0s",
-                icon = Icons.Default.Terminal,
-                isLast = true
+            EmptyStateMessage(
+                message = "Nenhum script disponível",
+                subtitle = "Crie scripts Python ou Shell usando o menu de ações"
             )
         }
     }
@@ -611,23 +637,9 @@ private fun ExecutionHistoryCard() {
                 )
             }
             
-            HistoryItem(
-                name = "Backup diário",
-                executedAt = "Executado em 09/07/2025",
-                status = "Sucesso",
-                statusColor = Color(0xFF4CAF50),
-                duration = "43s",
-                icon = Icons.Default.CheckCircle
-            )
-            
-            HistoryItem(
-                name = "Limpeza Temp",
-                executedAt = "Executado em 09/07/2025",
-                status = "Falha",
-                statusColor = Color(0xFFE57373),
-                duration = "0s",
-                icon = Icons.Default.Error,
-                isLast = true
+            EmptyStateMessage(
+                message = "Nenhuma execução registrada",
+                subtitle = "O histórico aparecerá aqui quando as tarefas forem executadas"
             )
         }
     }
@@ -695,6 +707,32 @@ private fun HistoryItem(
 }
 
 @Composable
+private fun EmptyStateMessage(
+    message: String,
+    subtitle: String
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+        )
+    }
+}
+
+@Composable
 private fun WelcomeMessage() {
     Row(
         modifier = Modifier
@@ -716,7 +754,8 @@ private fun TCronFAB(
     expanded: Boolean,
     onToggle: () -> Unit,
     onCreateTask: () -> Unit,
-    onCreateScript: () -> Unit,
+    onCreatePythonScript: () -> Unit,
+    onCreateShellScript: () -> Unit,
     onOpenTerminal: () -> Unit
 ) {
     val rotation by animateFloatAsState(
@@ -752,31 +791,24 @@ private fun TCronFAB(
                 )
                 
                 FABAction(
-                    icon = Icons.Default.FileUpload,
-                    label = "Carregar script",
-                    onClick = { /* TODO: File picker */ },
-                    delay = 50
-                )
-                
-                FABAction(
                     icon = Icons.Default.Schedule,
                     label = "Criar agendamento",
                     onClick = onCreateTask,
-                    delay = 100
+                    delay = 50
                 )
                 
                 FABAction(
                     icon = Icons.Default.IntegrationInstructions,
                     label = "Criar script Python",
-                    onClick = { /* TODO: Python script creator */ },
-                    delay = 150
+                    onClick = onCreatePythonScript,
+                    delay = 100
                 )
                 
                 FABAction(
                     icon = Icons.Default.Code,
                     label = "Criar script Shell",
-                    onClick = { /* TODO: Shell script creator */ },
-                    delay = 200
+                    onClick = onCreateShellScript,
+                    delay = 150
                 )
             }
         }
