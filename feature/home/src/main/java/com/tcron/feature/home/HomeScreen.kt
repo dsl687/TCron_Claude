@@ -61,20 +61,21 @@ fun HomeScreen(
                 expanded = showFabMenu,
                 onToggle = { showFabMenu = !showFabMenu },
                 onCreateTask = {
-                    onNavigateToCreateTask()
                     showFabMenu = false
+                    // Pequeno delay para evitar conflitos de navegação
+                    viewModel.navigateWithDelay { onNavigateToCreateTask() }
                 },
                 onCreatePythonScript = {
-                    onNavigateToCreatePythonScript()
                     showFabMenu = false
+                    viewModel.navigateWithDelay { onNavigateToCreatePythonScript() }
                 },
                 onCreateShellScript = {
-                    onNavigateToCreateShellScript()
                     showFabMenu = false
+                    viewModel.navigateWithDelay { onNavigateToCreateShellScript() }
                 },
                 onOpenTerminal = {
-                    onNavigateToTerminal()
                     showFabMenu = false
+                    viewModel.navigateWithDelay { onNavigateToTerminal() }
                 }
             )
         }

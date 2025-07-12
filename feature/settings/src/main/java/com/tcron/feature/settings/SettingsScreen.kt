@@ -43,6 +43,7 @@ fun SettingsScreen(
     
     var showLicensesDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
+    var showRestartDialog by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -63,7 +64,11 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                ThemeSettingsCard(themeManager, currentTheme)
+                ThemeSettingsCard(
+                    themeManager = themeManager, 
+                    currentTheme = currentTheme,
+                    onThemeChanged = { showRestartDialog = true }
+                )
             }
             
             item {
@@ -75,7 +80,12 @@ fun SettingsScreen(
             }
             
             item {
-                SecuritySettingsCard(uiState, viewModel, biometricHelper, context)
+                SecuritySettingsCard(
+                    uiState = uiState, 
+                    viewModel = viewModel, 
+                    biometricHelper = biometricHelper, 
+                    context = context
+                )
             }
             
             item {
@@ -88,11 +98,44 @@ fun SettingsScreen(
             }
         }
     }
+    
+    // Diálogo de reinicialização após mudança de tema
+    if (showRestartDialog) {
+        AlertDialog(
+            onDismissRequest = { showRestartDialog = false },
+            title = { Text("Reiniciar Aplicativo") },
+            text = { 
+                Text("Para aplicar o novo tema completamente, é recomendado reiniciar o aplicativo. Deseja reiniciar agora?") 
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showRestartDialog = false
+                        // Reiniciar o aplicativo
+                        restartApp(context)
+                    }
+                ) {
+                    Text("Reiniciar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showRestartDialog = false }
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ThemeSettingsCard(themeManager: ThemeManager, currentTheme: ThemeMode) {
+private fun ThemeSettingsCard(
+    themeManager: ThemeManager, 
+    currentTheme: ThemeMode,
+    onThemeChanged: () -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
@@ -147,7 +190,10 @@ private fun ThemeSettingsCard(themeManager: ThemeManager, currentTheme: ThemeMod
                     DropdownMenuItem(
                         text = { Text("Claro") },
                         onClick = {
-                            themeManager.setThemeMode(ThemeMode.LIGHT)
+                            if (currentTheme != ThemeMode.LIGHT) {
+                                themeManager.setThemeMode(ThemeMode.LIGHT)
+                                onThemeChanged()
+                            }
                             expanded = false
                         },
                         leadingIcon = {
@@ -157,7 +203,10 @@ private fun ThemeSettingsCard(themeManager: ThemeManager, currentTheme: ThemeMod
                     DropdownMenuItem(
                         text = { Text("Escuro") },
                         onClick = {
-                            themeManager.setThemeMode(ThemeMode.DARK)
+                            if (currentTheme != ThemeMode.DARK) {
+                                themeManager.setThemeMode(ThemeMode.DARK)
+                                onThemeChanged()
+                            }
                             expanded = false
                         },
                         leadingIcon = {
@@ -167,7 +216,10 @@ private fun ThemeSettingsCard(themeManager: ThemeManager, currentTheme: ThemeMod
                     DropdownMenuItem(
                         text = { Text("Padrão do sistema") },
                         onClick = {
-                            themeManager.setThemeMode(ThemeMode.SYSTEM)
+                            if (currentTheme != ThemeMode.SYSTEM) {
+                                themeManager.setThemeMode(ThemeMode.SYSTEM)
+                                onThemeChanged()
+                            }
                             expanded = false
                         },
                         leadingIcon = {
@@ -766,6 +818,20 @@ private fun SettingItem(
                 )
             }
         }
+    }
+}
+
+// Função para reiniciar o app
+private fun restartApp(context: android.content.Context) {
+    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+    intent?.let {
+        it.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        it.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(it)
+        if (context is android.app.Activity) {
+            context.finish()
+        }
+        kotlin.system.exitProcess(0)
     }
 }
 

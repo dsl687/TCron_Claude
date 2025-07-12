@@ -328,12 +328,12 @@ fun CreateShellScriptScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         val quickCommands = listOf(
-                            "df -h" to "Verificar espaço em disco",
-                            "ps aux" to "Listar processos", 
-                            "free -h" to "Verificar memória",
-                            "wm set-user-rotation 1" to "Rotar tela 90°",
-                            "wm set-user-rotation 0" to "Rotação automática",
-                            "uptime" to "Tempo de atividade"
+                            "echo 'Teste TCron executado!'" to "Teste simples",
+                            "date" to "Data e hora atual",
+                            "whoami" to "Usuário atual",
+                            "pwd" to "Diretório atual",
+                            "echo \$PATH" to "Variável PATH",
+                            "wm set-user-rotation 1" to "Rotar tela 90°"
                         )
                         
                         items(quickCommands.size) { index: Int ->

@@ -88,6 +88,13 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+    
+    fun navigateWithDelay(action: () -> Unit) {
+        viewModelScope.launch {
+            delay(300) // Pequeno delay para evitar conflitos de UI
+            action()
+        }
+    }
 }
 
 data class HomeUiState(

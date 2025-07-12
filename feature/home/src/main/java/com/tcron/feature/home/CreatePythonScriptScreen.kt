@@ -269,81 +269,69 @@ fun CreatePythonScriptScreen(
 
 private fun getPythonTemplate(): String {
     return """#!/system/bin/env python3
-# -*- coding: utf-8 -*-
-\"\"\"
-TCron Python Script Template
-Descrição: Script de exemplo para automação de tarefas
-
-Este template está otimizado para Android e inclui verificações
-de compatibilidade para execução em ambiente móvel.
-\"\"\"
+# TCron Python Script - Teste Funcional
+# Este é um script simples e funcional para demonstrar o TCron
 
 import os
 import sys
 import datetime
-import subprocess
-import platform
-
-def log_message(message):
-    \"\"\"Log com timestamp\"\"\"
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{timestamp}] {message}")
-
-def check_android_environment():
-    \"\"\"Verifica se está executando no Android\"\"\"
-    try:
-        return 'android' in platform.platform().lower() or os.path.exists('/system/build.prop')
-    except:
-        return False
+import json
 
 def main():
-    \"\"\"
-    Função principal do script
-    \"\"\"
-    log_message("=== TCron Python Script ===")
-    log_message("Iniciando execução...")
+    print("=== TCron Python Test ===")
+    print(f"Data/Hora: {datetime.datetime.now()}")
+    print(f"Python: {sys.version}")
+    print(f"Diretório: {os.getcwd()}")
+    print(f"Usuário: {os.getenv('USER', 'desconhecido')}")
     
-    # Verificar ambiente Android
-    is_android = check_android_environment()
-    log_message(f"Ambiente Android: {'Sim' if is_android else 'Não'}")
+    # Criar arquivo de teste
+    test_data = {
+        "script": "Python TCron Test",
+        "timestamp": str(datetime.datetime.now()),
+        "status": "executado com sucesso",
+        "python_version": sys.version.split()[0],
+        "platform": sys.platform
+    }
     
-    # Seu código personalizado aqui
-    try:
-        # Exemplo: informações básicas do sistema
-        log_message(f"Sistema: {platform.system()}")
-        log_message(f"Arquitetura: {platform.machine()}")
-        log_message(f"Usuário: {os.getenv('USER', os.getenv('USERNAME', 'unknown'))}")
-        log_message(f"Diretório: {os.getcwd()}")
-        
-        # Exemplo específico para Android
-        if is_android:
-            log_message("Executando comandos Android...")
-            # Comandos seguros para Android
-            if os.path.exists('/proc/version'):
-                with open('/proc/version', 'r') as f:
-                    kernel_info = f.read().strip()
-                    log_message(f"Kernel: {kernel_info[:50]}...")
-        else:
-            log_message("Executando comandos padrão...")
-            # Comandos para sistemas Unix/Linux padrão
-            try:
-                result = subprocess.run(['whoami'], capture_output=True, text=True, timeout=5)
-                if result.returncode == 0:
-                    log_message(f"Usuário verificado: {result.stdout.strip()}")
-            except:
-                log_message("Comando whoami não disponível")
-        
-        log_message("Script executado com sucesso!")
-        return 0
-        
-    except Exception as e:
-        log_message(f"ERRO: {e}")
-        return 1
-    finally:
-        log_message("=== Fim da execução ===")
+    # Tentar criar arquivo em locais seguros
+    test_paths = [
+        "/data/local/tmp/tcron_python_test.json",
+        "/tmp/tcron_python_test.json",
+        "./tcron_python_test.json"
+    ]
+    
+    for test_file in test_paths:
+        try:
+            # Criar diretório se necessário
+            directory = os.path.dirname(test_file)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory, exist_ok=True)
+            
+            # Escrever arquivo
+            with open(test_file, 'w') as f:
+                json.dump(test_data, f, indent=2)
+            
+            print(f"✅ Arquivo criado: {test_file}")
+            
+            # Verificar se pode ler
+            with open(test_file, 'r') as f:
+                data_read = json.load(f)
+            
+            print(f"✅ Arquivo lido: {data_read['status']}")
+            break
+            
+        except Exception as e:
+            print(f"❌ Falha em {test_file}: {e}")
+            continue
+    else:
+        print("❌ Não foi possível criar arquivo em nenhum local")
+    
+    print("✅ Script Python executado com sucesso!")
+    return 0
 
 if __name__ == "__main__":
     exit_code = main()
+    print(f"Código de saída: {exit_code}")
     sys.exit(exit_code)
 """
 }
